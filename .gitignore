@@ -35,6 +35,7 @@ ios/Flutter/app.zip
 
 # macOS
 .DS_Store
+handoff.md
 
 # Pub
 .pub-cache/
