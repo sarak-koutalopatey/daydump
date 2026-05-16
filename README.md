@@ -146,8 +146,3 @@ flutter run
 flutter test
 ```
 
----
-
-## Licence
-
-Projet privé — tous droits réservés.
