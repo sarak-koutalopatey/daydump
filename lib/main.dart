@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'services/notification_service.dart';
 import 'state/app_state.dart';
 import 'screens/main_scaffold.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
   runApp(
     ChangeNotifierProvider(
       create: (_) => AppState(),
@@ -18,12 +21,13 @@ class DayDumpApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = context.watch<AppState>().themeMode;
     return MaterialApp(
       title: 'DayDump',
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       home: const MainScaffold(),
     );
   }
