@@ -823,11 +823,11 @@ class _ExportRow extends StatelessWidget {
       label: 'Export all entries',
       trailing:
           Icon(Icons.ios_share_rounded, color: context.cText3, size: 18),
-      onTap: _export,
+      onTap: () => _export(context),
     );
   }
 
-  void _export() {
+  void _export(BuildContext context) {
     if (entries.isEmpty) return;
     final sorted = [...entries]..sort((a, b) => a.date.compareTo(b.date));
     final buffer = StringBuffer()
@@ -839,7 +839,15 @@ class _ExportRow extends StatelessWidget {
         ..writeln(entry.toExportText())
         ..writeln();
     }
-    Share.share(buffer.toString(), subject: 'My DayDump Journal');
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = box != null
+        ? box.localToGlobal(Offset.zero) & box.size
+        : Rect.fromLTWH(0, 0, 100, 100);
+    Share.share(
+      buffer.toString(),
+      subject: 'My DayDump Journal',
+      sharePositionOrigin: origin,
+    );
   }
 }
 
