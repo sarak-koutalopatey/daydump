@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/entry.dart';
 import '../data/sample_data.dart';
+import '../services/notification_service.dart';
 
 class AppState extends ChangeNotifier {
   List<JournalEntry> _entries = [];
@@ -88,7 +89,10 @@ class AppState extends ChangeNotifier {
     final today = _normalizeDate(DateTime.now());
     _entries.removeWhere((e) => _normalizeDate(e.date) == today);
     _entries.insert(0, entry);
-    if (!_completedToday) _streak++;
+    if (!_completedToday) {
+      _streak++;
+      if (_remindersEnabled) await NotificationService.cancel();
+    }
     _completedToday = true;
     await _persist();
     notifyListeners();
@@ -117,6 +121,16 @@ class AppState extends ChangeNotifier {
     if (hour != null) _reminderHour = hour;
     if (minute != null) _reminderMinute = minute;
     await _persist();
+    notifyListeners();
+  }
+
+  Future<void> clearAllData() async {
+    _entries = [];
+    _streak = 0;
+    _completedToday = false;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('entries', []);
+    await prefs.setInt('streak', 0);
     notifyListeners();
   }
 

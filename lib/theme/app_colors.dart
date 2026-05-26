@@ -22,4 +22,8 @@ extension AppColorsX on BuildContext {
       isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04);
   Color get cTabBg =>
       isDark ? const Color(0xFF111111).withValues(alpha: 0.92) : const Color(0xFFFFFFFF).withValues(alpha: 0.92);
+  Color get cDanger =>
+      isDark ? const Color(0xFFF87171) : const Color(0xFFEF4444);
+  Color get cDangerTint =>
+      isDark ? const Color(0xFFF87171).withValues(alpha: 0.10) : const Color(0xFFEF4444).withValues(alpha: 0.07);
 }

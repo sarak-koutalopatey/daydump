@@ -84,6 +84,19 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: context.cDangerTint,
+                      border: Border.all(
+                          color: context.cDanger.withValues(alpha: 0.35)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: _DeleteAllRow(entryCount: state.entries.length),
+                    ),
+                  ),
                   const SizedBox(height: 32),
                   Center(
                     child: Text(
@@ -491,7 +504,10 @@ class _RemindersRow extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        builder: (_) => _RemindersSheet(appState: context.read<AppState>()),
+        builder: (_) => _RemindersSheet(
+          appState: context.read<AppState>(),
+          parentContext: context,
+        ),
       ),
     );
   }
@@ -499,7 +515,11 @@ class _RemindersRow extends StatelessWidget {
 
 class _RemindersSheet extends StatefulWidget {
   final AppState appState;
-  const _RemindersSheet({required this.appState});
+  final BuildContext parentContext;
+  const _RemindersSheet({
+    required this.appState,
+    required this.parentContext,
+  });
 
   @override
   State<_RemindersSheet> createState() => _RemindersSheetState();
@@ -519,18 +539,75 @@ class _RemindersSheetState extends State<_RemindersSheet> {
   }
 
   Future<void> _setEnabled(bool val) async {
-    if (val) {
-      final granted = await NotificationService.requestPermission();
+    try {
+      if (val) {
+        final granted = await NotificationService.requestPermission();
+        if (!mounted) return;
+        if (!granted) {
+          _showDialog(
+            title: 'Notifications disabled',
+            message:
+                'To receive reminders, allow notifications for DayDump in Settings > Notifications.',
+          );
+          return;
+        }
+        await widget.appState
+            .setReminder(enabled: true, hour: _hour, minute: _minute);
+        await NotificationService.scheduleDailyReminder(_hour, _minute);
+      } else {
+        await widget.appState.setReminder(enabled: false);
+        await NotificationService.cancel();
+      }
+    } catch (e) {
       if (!mounted) return;
-      if (!granted) return;
-      await widget.appState
-          .setReminder(enabled: true, hour: _hour, minute: _minute);
-      await NotificationService.scheduleDailyReminder(_hour, _minute);
-    } else {
       await widget.appState.setReminder(enabled: false);
-      await NotificationService.cancel();
+      _showDialog(
+        title: 'Could not set reminder',
+        message: 'An error occurred: ${e.runtimeType}. Please try again.',
+      );
+      return;
     }
     if (mounted) setState(() => _enabled = val);
+  }
+
+  void _showDialog({required String title, required String message}) {
+    final ctx = widget.parentContext;
+    showDialog<void>(
+      context: ctx,
+      builder: (_) => AlertDialog(
+        backgroundColor: ctx.cSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          title,
+          style: GoogleFonts.figtree(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: ctx.cText,
+          ),
+        ),
+        content: Text(
+          message,
+          style: GoogleFonts.figtree(
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            color: ctx.cText2,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'OK',
+              style: GoogleFonts.figtree(
+                color: kAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _pickTime() async {
@@ -546,10 +623,21 @@ class _RemindersSheetState extends State<_RemindersSheet> {
       ),
     );
     if (picked == null || !mounted) return;
-    await widget.appState.setReminder(
-        enabled: true, hour: picked.hour, minute: picked.minute);
-    await NotificationService.scheduleDailyReminder(
-        picked.hour, picked.minute);
+    try {
+      await widget.appState.setReminder(
+          enabled: true, hour: picked.hour, minute: picked.minute);
+      await NotificationService.scheduleDailyReminder(
+          picked.hour, picked.minute);
+    } catch (e) {
+      if (mounted) {
+        _showDialog(
+          title: 'Could not set reminder',
+          message: 'An error occurred: ${e.runtimeType}. Please try again.',
+        );
+      }
+      return;
+    }
+    if (!mounted) return;
     setState(() {
       _hour = picked.hour;
       _minute = picked.minute;
@@ -673,6 +761,108 @@ class _ExportRow extends StatelessWidget {
         ..writeln();
     }
     Share.share(buffer.toString(), subject: 'My DayDump Journal');
+  }
+}
+
+// ─── Danger zone ─────────────────────────────────────────────────────────────
+
+class _DeleteAllRow extends StatelessWidget {
+  final int entryCount;
+  const _DeleteAllRow({required this.entryCount});
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: () => _confirm(context),
+      useBackgroundShift: true,
+      child: SizedBox(
+        height: 52,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Delete all entries',
+                  style: GoogleFonts.figtree(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: context.cDanger,
+                  ),
+                ),
+              ),
+              Icon(Icons.delete_outline_rounded,
+                  color: context.cDanger, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirm(BuildContext context) {
+    final appState = context.read<AppState>();
+    showDialog<void>(
+      context: context,
+      builder: (_) => _DeleteAllDialog(
+        entryCount: entryCount,
+        appState: appState,
+      ),
+    );
+  }
+}
+
+class _DeleteAllDialog extends StatelessWidget {
+  final int entryCount;
+  final AppState appState;
+  const _DeleteAllDialog(
+      {required this.entryCount, required this.appState});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: context.cSurface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        'Delete all entries?',
+        style: GoogleFonts.figtree(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: context.cText,
+        ),
+      ),
+      content: Text(
+        'This will permanently delete $entryCount ${entryCount == 1 ? 'entry' : 'entries'}. This cannot be undone.',
+        style: GoogleFonts.figtree(
+          fontSize: 15,
+          fontWeight: FontWeight.w400,
+          color: context.cText2,
+          height: 1.5,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            'Cancel',
+            style: GoogleFonts.figtree(color: context.cText2),
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            appState.clearAllData();
+            Navigator.of(context).pop();
+          },
+          child: Text(
+            'Delete all',
+            style: GoogleFonts.figtree(
+              color: context.cDanger,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
