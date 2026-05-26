@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,8 @@ import '../state/app_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/pressable.dart';
+import '../widgets/primary_button.dart';
+import '../widgets/secondary_button.dart';
 
 class SettingsScreen extends StatelessWidget {
   final ValueChanged<NavTab> onTabChange;
@@ -539,35 +542,111 @@ class _RemindersSheetState extends State<_RemindersSheet> {
   }
 
   Future<void> _setEnabled(bool val) async {
-    try {
-      if (val) {
-        final granted = await NotificationService.requestPermission();
-        if (!mounted) return;
-        if (!granted) {
-          _showDialog(
-            title: 'Notifications disabled',
-            message:
-                'To receive reminders, allow notifications for DayDump in Settings > Notifications.',
-          );
-          return;
-        }
+    if (val) {
+      // Show rationale before triggering the native permission dialog
+      final proceed = await _showNotificationRationale();
+      if (!proceed || !mounted) return;
+
+      bool granted;
+      try {
+        granted = await NotificationService.requestPermission();
+      } catch (e) {
+        if (mounted) _showPermissionDeniedDialog();
+        return;
+      }
+
+      if (!mounted) return;
+      if (!granted) {
+        _showPermissionDeniedDialog();
+        return;
+      }
+
+      try {
         await widget.appState
             .setReminder(enabled: true, hour: _hour, minute: _minute);
         await NotificationService.scheduleDailyReminder(_hour, _minute);
-      } else {
+      } catch (e) {
+        if (!mounted) return;
+        await widget.appState.setReminder(enabled: false);
+        _showDialog(
+          title: 'Could not set reminder',
+          message: 'An error occurred: ${e.runtimeType}. Please try again.',
+        );
+        return;
+      }
+
+      if (mounted) setState(() => _enabled = true);
+    } else {
+      try {
         await widget.appState.setReminder(enabled: false);
         await NotificationService.cancel();
-      }
-    } catch (e) {
-      if (!mounted) return;
-      await widget.appState.setReminder(enabled: false);
-      _showDialog(
-        title: 'Could not set reminder',
-        message: 'An error occurred: ${e.runtimeType}. Please try again.',
-      );
-      return;
+      } catch (_) {}
+      if (mounted) setState(() => _enabled = false);
     }
-    if (mounted) setState(() => _enabled = val);
+  }
+
+  Future<bool> _showNotificationRationale() async {
+    final result = await showModalBottomSheet<bool>(
+      context: widget.parentContext,
+      useRootNavigator: true,
+      backgroundColor: widget.parentContext.cSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) =>
+          _NotificationPermissionSheet(hour: _hour, minute: _minute),
+    );
+    return result == true;
+  }
+
+  void _showPermissionDeniedDialog() {
+    final ctx = widget.parentContext;
+    showDialog<void>(
+      context: ctx,
+      builder: (_) => AlertDialog(
+        backgroundColor: ctx.cSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Notifications blocked',
+          style: GoogleFonts.figtree(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: ctx.cText,
+          ),
+        ),
+        content: Text(
+          'Allow notifications for DayDump in your device settings to receive daily reminders.',
+          style: GoogleFonts.figtree(
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            color: ctx.cText2,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'Not now',
+              style: GoogleFonts.figtree(color: ctx.cText2),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              AppSettings.openAppSettings(type: AppSettingsType.notification);
+            },
+            child: Text(
+              'Open Settings',
+              style: GoogleFonts.figtree(
+                color: kAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showDialog({required String title, required String message}) {
@@ -862,6 +941,73 @@ class _DeleteAllDialog extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── Notification permission rationale ───────────────────────────────────────
+
+class _NotificationPermissionSheet extends StatelessWidget {
+  final int hour;
+  final int minute;
+  const _NotificationPermissionSheet({required this.hour, required this.minute});
+
+  @override
+  Widget build(BuildContext context) {
+    final timeStr =
+        '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _sheetHandle(context),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: context.cAccentTint,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(Icons.notifications_rounded,
+                  color: context.cAccent, size: 32),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Allow daily reminders',
+              style: GoogleFonts.figtree(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: context.cText,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'DayDump will send you a reminder at $timeStr each day to complete your check-in.',
+              style: GoogleFonts.figtree(
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+                color: context.cText2,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            PrimaryButton(
+              label: 'Allow notifications',
+              onTap: () => Navigator.of(context).pop(true),
+            ),
+            const SizedBox(height: 12),
+            SecondaryButton(
+              label: 'Not now',
+              onTap: () => Navigator.of(context).pop(false),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
