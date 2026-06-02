@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_strings.dart';
+import '../services/notification_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/pressable.dart';
@@ -21,7 +22,10 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
-  static const _pageCount = 4;
+
+  int get _pageCount => widget.isReview ? 4 : 5;
+  bool get _isLast => _currentPage == _pageCount - 1;
+  bool get _isNotifPage => !widget.isReview && _isLast;
 
   @override
   void dispose() {
@@ -66,11 +70,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  Future<void> _allowAndComplete() async {
+    bool granted = false;
+    try {
+      granted = await NotificationService.requestPermission();
+    } catch (_) {}
+
+    if (granted && mounted) {
+      final appState = context.read<AppState>();
+      final lang = Localizations.localeOf(context).languageCode;
+      await appState.setReminder(enabled: true, hour: 20, minute: 0);
+      await NotificationService.scheduleDailyReminder(20, 0, lang: lang);
+    }
+
+    if (mounted) _complete();
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = context.s;
-    final isLast = _currentPage == _pageCount - 1;
-
     final pages = _buildPages(s);
 
     return Scaffold(
@@ -101,7 +119,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     else
                       const SizedBox(width: 44),
                     const Spacer(),
-                    if (!isLast && !widget.isReview)
+                    if (!_isLast && !widget.isReview)
                       Pressable(
                         onTap: _skip,
                         child: Padding(
@@ -158,15 +176,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     }),
                   ),
                   const SizedBox(height: 20),
-                  PrimaryButton(
-                    label: isLast
-                        ? (widget.isReview ? s.close : s.getStarted)
-                        : s.next,
-                    trailing: isLast
-                        ? null
-                        : const Icon(Icons.arrow_forward_rounded),
-                    onTap: _goNext,
-                  ),
+
+                  if (_isNotifPage) ...[
+                    PrimaryButton(
+                      label: s.allowNotifications,
+                      onTap: _allowAndComplete,
+                    ),
+                    const SizedBox(height: 14),
+                    Pressable(
+                      onTap: _complete,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          s.notNow,
+                          style: GoogleFonts.figtree(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: context.cText2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else
+                    PrimaryButton(
+                      label: _isLast
+                          ? (widget.isReview ? s.close : s.getStarted)
+                          : s.next,
+                      trailing: _isLast
+                          ? null
+                          : const Icon(Icons.arrow_forward_rounded),
+                      onTap: _goNext,
+                    ),
                 ],
               ),
             ),
@@ -176,36 +216,50 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  List<_PageData> _buildPages(AppStrings s) => [
-        _PageData(
-          icon: Icons.wb_sunny_rounded,
-          bgColor: context.cAccentTint,
-          iconColor: context.cAccent,
-          title: s.onboarding1Title,
-          subtitle: s.onboarding1Subtitle,
-        ),
-        _PageData(
-          icon: Icons.edit_note_rounded,
-          bgColor: context.cSurface2,
-          iconColor: context.cText2,
-          title: s.onboarding2Title,
-          subtitle: s.onboarding2Subtitle,
-        ),
-        _PageData(
-          icon: Icons.local_fire_department_rounded,
-          bgColor: context.cAccentTint,
-          iconColor: context.cAccent,
-          title: s.onboarding3Title,
-          subtitle: s.onboarding3Subtitle,
-        ),
-        _PageData(
-          icon: Icons.lock_outline_rounded,
-          bgColor: context.cSurface2,
-          iconColor: context.cText2,
-          title: s.onboarding4Title,
-          subtitle: s.onboarding4Subtitle,
-        ),
-      ];
+  List<_PageData> _buildPages(AppStrings s) {
+    final pages = [
+      _PageData(
+        icon: Icons.wb_sunny_rounded,
+        bgColor: context.cAccentTint,
+        iconColor: context.cAccent,
+        title: s.onboarding1Title,
+        subtitle: s.onboarding1Subtitle,
+      ),
+      _PageData(
+        icon: Icons.edit_note_rounded,
+        bgColor: context.cSurface2,
+        iconColor: context.cText2,
+        title: s.onboarding2Title,
+        subtitle: s.onboarding2Subtitle,
+      ),
+      _PageData(
+        icon: Icons.local_fire_department_rounded,
+        bgColor: context.cAccentTint,
+        iconColor: context.cAccent,
+        title: s.onboarding3Title,
+        subtitle: s.onboarding3Subtitle,
+      ),
+      _PageData(
+        icon: Icons.lock_outline_rounded,
+        bgColor: context.cSurface2,
+        iconColor: context.cText2,
+        title: s.onboarding4Title,
+        subtitle: s.onboarding4Subtitle,
+      ),
+    ];
+
+    if (!widget.isReview) {
+      pages.add(_PageData(
+        icon: Icons.notifications_rounded,
+        bgColor: context.cAccentTint,
+        iconColor: context.cAccent,
+        title: s.onboarding5Title,
+        subtitle: s.onboarding5Subtitle,
+      ));
+    }
+
+    return pages;
+  }
 }
 
 // ─── Page data ────────────────────────────────────────────────────────────────

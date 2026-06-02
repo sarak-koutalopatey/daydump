@@ -126,6 +126,8 @@ abstract class AppStrings {
   String get onboarding3Subtitle;
   String get onboarding4Title;
   String get onboarding4Subtitle;
+  String get onboarding5Title;
+  String get onboarding5Subtitle;
 
   // Notification
   String get notifTitle;
@@ -270,6 +272,9 @@ class _En extends AppStrings {
   @override String get onboarding4Title => 'Your journal, your device';
   @override String get onboarding4Subtitle =>
       'No account. No cloud.\nYour data never leaves your phone.';
+  @override String get onboarding5Title => 'Never miss a day';
+  @override String get onboarding5Subtitle =>
+      'Get a gentle reminder each evening to complete your check-in.\nYou can change the time anytime in Settings.';
 
   @override String get notifTitle => 'Time for your DayDump';
   @override String get notifBody => 'How did today go?';
@@ -414,6 +419,9 @@ class _Fr extends AppStrings {
   @override String get onboarding4Title => 'Ton journal, ton appareil';
   @override String get onboarding4Subtitle =>
       'Pas de compte. Pas de nuage.\nTes données ne quittent jamais ton téléphone.';
+  @override String get onboarding5Title => 'Ne rate aucun jour';
+  @override String get onboarding5Subtitle =>
+      'Reçois un rappel chaque soir pour compléter ton journal.\nTu peux modifier l\'heure à tout moment dans les réglages.';
 
   @override String get notifTitle => 'C\'est l\'heure de ton DayDump';
   @override String get notifBody => 'Comment s\'est passée ta journée ?';
