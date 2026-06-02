@@ -3,18 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/entry.dart';
 import '../data/sample_data.dart';
+import '../services/database_service.dart';
 import '../services/notification_service.dart';
 
 class AppState extends ChangeNotifier {
   List<JournalEntry> _entries = [];
-  int _streak = 12;
+  int _streak = 0;
   bool _completedToday = false;
   String _userName = 'Alex';
   ThemeMode _themeMode = ThemeMode.system;
   bool _remindersEnabled = false;
   int _reminderHour = 20;
   int _reminderMinute = 0;
-  String? _languageCode; // null = follow device language
+  String? _languageCode;
   bool _loaded = false;
   bool _onboardingCompleted = false;
 
@@ -30,14 +31,12 @@ class AppState extends ChangeNotifier {
   bool get loaded => _loaded;
   bool get onboardingCompleted => _onboardingCompleted;
 
-  List<JournalEntry> get thisWeekEntries =>
-      _entries.where((e) {
+  List<JournalEntry> get thisWeekEntries => _entries.where((e) {
         final diff = DateTime.now().difference(e.date).inDays;
         return diff < 7;
       }).toList();
 
-  List<JournalEntry> get lastWeekEntries =>
-      _entries.where((e) {
+  List<JournalEntry> get lastWeekEntries => _entries.where((e) {
         final diff = DateTime.now().difference(e.date).inDays;
         return diff >= 7 && diff < 14;
       }).toList();
@@ -48,32 +47,57 @@ class AppState extends ChangeNotifier {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList('entries');
-    if (raw != null && raw.isNotEmpty) {
-      _entries = raw
-          .map((s) => JournalEntry.fromJson(jsonDecode(s) as Map<String, dynamic>))
-          .toList()
-        ..sort((a, b) => b.date.compareTo(a.date));
-      _streak = prefs.getInt('streak') ?? 0;
-      final savedName = prefs.getString('userName');
-      if (savedName != null) _userName = savedName;
-      final today = _normalizeDate(DateTime.now());
-      _completedToday = _entries.isNotEmpty &&
-          _normalizeDate(_entries.first.date) == today;
-    } else {
-      // Seed with sample data on first launch
-      _entries = List.from(kSampleEntries);
-      _streak = 12;
-      _completedToday = true; // "Today" entry is pre-seeded
-      await _persist();
-    }
+
+    // Load preferences first (needed to disambiguate first launch vs cleared data)
+    final savedName = prefs.getString('userName');
+    if (savedName != null) _userName = savedName;
     final modeIndex = prefs.getInt('themeMode') ?? ThemeMode.system.index;
-    _themeMode = ThemeMode.values[modeIndex.clamp(0, ThemeMode.values.length - 1)];
+    _themeMode =
+        ThemeMode.values[modeIndex.clamp(0, ThemeMode.values.length - 1)];
     _remindersEnabled = prefs.getBool('remindersEnabled') ?? false;
     _reminderHour = prefs.getInt('reminderHour') ?? 20;
     _reminderMinute = prefs.getInt('reminderMinute') ?? 0;
     _languageCode = prefs.getString('languageCode');
     _onboardingCompleted = prefs.getBool('onboardingCompleted') ?? false;
+
+    // Load entries from SQLite
+    final dbEntries = await DatabaseService.getAllEntries();
+
+    if (dbEntries.isNotEmpty) {
+      _entries = dbEntries;
+      _streak = prefs.getInt('streak') ?? 0;
+      final today = _normalizeDate(DateTime.now());
+      _completedToday =
+          _normalizeDate(_entries.first.date) == today;
+    } else {
+      // Check for SharedPreferences → SQLite migration (upgrading users)
+      final raw = prefs.getStringList('entries');
+      if (raw != null && raw.isNotEmpty) {
+        _entries = raw
+            .map((s) =>
+                JournalEntry.fromJson(jsonDecode(s) as Map<String, dynamic>))
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
+        for (final entry in _entries) {
+          await DatabaseService.insertEntry(entry);
+        }
+        await prefs.remove('entries');
+        _streak = prefs.getInt('streak') ?? 0;
+        final today = _normalizeDate(DateTime.now());
+        _completedToday =
+            _entries.isNotEmpty && _normalizeDate(_entries.first.date) == today;
+      } else if (!_onboardingCompleted) {
+        // True first launch — seed sample data
+        _entries = List.from(kSampleEntries);
+        _streak = 12;
+        _completedToday = true;
+        for (final entry in _entries) {
+          await DatabaseService.insertEntry(entry);
+        }
+      }
+      // onboardingCompleted + empty DB = user cleared data intentionally
+    }
+
     _loaded = true;
     notifyListeners();
   }
@@ -90,16 +114,25 @@ class AppState extends ChangeNotifier {
       blockers: blockers,
       tomorrow: tomorrow,
     );
-    // Replace today's entry if one exists, otherwise prepend
+
+    // Delete any existing entry for today before inserting the new one
     final today = _normalizeDate(DateTime.now());
+    final todayEntries =
+        _entries.where((e) => _normalizeDate(e.date) == today).toList();
+    for (final old in todayEntries) {
+      await DatabaseService.deleteEntry(old.id);
+    }
+    await DatabaseService.insertEntry(entry);
+
     _entries.removeWhere((e) => _normalizeDate(e.date) == today);
     _entries.insert(0, entry);
+
     if (!_completedToday) {
       _streak++;
       if (_remindersEnabled) await NotificationService.cancel();
     }
     _completedToday = true;
-    await _persist();
+    await _persistSettings();
     notifyListeners();
   }
 
@@ -107,13 +140,19 @@ class AppState extends ChangeNotifier {
     final trimmed = name.trim();
     if (trimmed.isEmpty) return;
     _userName = trimmed;
-    await _persist();
+    await _persistSettings();
     notifyListeners();
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;
-    await _persist();
+    await _persistSettings();
+    notifyListeners();
+  }
+
+  Future<void> setLanguageCode(String? code) async {
+    _languageCode = code;
+    await _persistSettings();
     notifyListeners();
   }
 
@@ -121,12 +160,6 @@ class AppState extends ChangeNotifier {
     _onboardingCompleted = true;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboardingCompleted', true);
-    notifyListeners();
-  }
-
-  Future<void> setLanguageCode(String? code) async {
-    _languageCode = code;
-    await _persist();
     notifyListeners();
   }
 
@@ -138,26 +171,22 @@ class AppState extends ChangeNotifier {
     _remindersEnabled = enabled;
     if (hour != null) _reminderHour = hour;
     if (minute != null) _reminderMinute = minute;
-    await _persist();
+    await _persistSettings();
     notifyListeners();
   }
 
   Future<void> clearAllData() async {
+    await DatabaseService.deleteAll();
     _entries = [];
     _streak = 0;
     _completedToday = false;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('entries', []);
     await prefs.setInt('streak', 0);
     notifyListeners();
   }
 
-  Future<void> _persist() async {
+  Future<void> _persistSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      'entries',
-      _entries.map((e) => jsonEncode(e.toJson())).toList(),
-    );
     await prefs.setInt('streak', _streak);
     await prefs.setString('userName', _userName);
     await prefs.setInt('themeMode', _themeMode.index);
@@ -171,6 +200,5 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  DateTime _normalizeDate(DateTime dt) =>
-      DateTime(dt.year, dt.month, dt.day);
+  DateTime _normalizeDate(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 }
