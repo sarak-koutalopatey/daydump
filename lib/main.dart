@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'services/notification_service.dart';
 import 'state/app_state.dart';
 import 'screens/main_scaffold.dart';
+import 'screens/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +37,11 @@ class DayDumpApp extends StatelessWidget {
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       themeMode: state.themeMode,
-      home: const MainScaffold(),
+      home: !state.loaded
+          ? const Scaffold()
+          : !state.onboardingCompleted
+              ? const OnboardingScreen()
+              : const MainScaffold(),
     );
   }
 

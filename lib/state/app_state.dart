@@ -15,6 +15,8 @@ class AppState extends ChangeNotifier {
   int _reminderHour = 20;
   int _reminderMinute = 0;
   String? _languageCode; // null = follow device language
+  bool _loaded = false;
+  bool _onboardingCompleted = false;
 
   List<JournalEntry> get entries => _entries;
   int get streak => _streak;
@@ -25,6 +27,8 @@ class AppState extends ChangeNotifier {
   int get reminderHour => _reminderHour;
   int get reminderMinute => _reminderMinute;
   String? get languageCode => _languageCode;
+  bool get loaded => _loaded;
+  bool get onboardingCompleted => _onboardingCompleted;
 
   List<JournalEntry> get thisWeekEntries =>
       _entries.where((e) {
@@ -69,6 +73,8 @@ class AppState extends ChangeNotifier {
     _reminderHour = prefs.getInt('reminderHour') ?? 20;
     _reminderMinute = prefs.getInt('reminderMinute') ?? 0;
     _languageCode = prefs.getString('languageCode');
+    _onboardingCompleted = prefs.getBool('onboardingCompleted') ?? false;
+    _loaded = true;
     notifyListeners();
   }
 
@@ -108,6 +114,13 @@ class AppState extends ChangeNotifier {
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;
     await _persist();
+    notifyListeners();
+  }
+
+  Future<void> setOnboardingCompleted() async {
+    _onboardingCompleted = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboardingCompleted', true);
     notifyListeners();
   }
 

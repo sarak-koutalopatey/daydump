@@ -113,6 +113,20 @@ abstract class AppStrings {
   String get exportQ2;
   String get exportQ3;
 
+  // Onboarding
+  String get skip;
+  String get getStarted;
+  String get close;
+  String get help;
+  String get onboarding1Title;
+  String get onboarding1Subtitle;
+  String get onboarding2Title;
+  String get onboarding2Subtitle;
+  String get onboarding3Title;
+  String get onboarding3Subtitle;
+  String get onboarding4Title;
+  String get onboarding4Subtitle;
+
   // Notification
   String get notifTitle;
   String get notifBody;
@@ -240,6 +254,23 @@ class _En extends AppStrings {
   @override String get exportQ2 => 'What got in your way?';
   @override String get exportQ3 => 'What will you tackle tomorrow?';
 
+  @override String get skip => 'Skip';
+  @override String get getStarted => 'Get started';
+  @override String get close => 'Close';
+  @override String get help => 'Help';
+  @override String get onboarding1Title => 'Welcome to DayDump';
+  @override String get onboarding1Subtitle =>
+      'A 5-minute reflection at the end of each day.\n3 questions. All on your device.';
+  @override String get onboarding2Title => 'Three honest questions';
+  @override String get onboarding2Subtitle =>
+      'What did you accomplish? What got in your way? What\'s next?\nAnswer honestly, in just a few words.';
+  @override String get onboarding3Title => 'Build a streak';
+  @override String get onboarding3Subtitle =>
+      'Show up every day.\nSmall daily reps add up to something real.';
+  @override String get onboarding4Title => 'Your journal, your device';
+  @override String get onboarding4Subtitle =>
+      'No account. No cloud.\nYour data never leaves your phone.';
+
   @override String get notifTitle => 'Time for your DayDump';
   @override String get notifBody => 'How did today go?';
   @override String get notifChannelName => 'Daily reminder';
@@ -366,6 +397,23 @@ class _Fr extends AppStrings {
   @override String get exportQ1 => 'Qu\'as-tu accompli aujourd\'hui ?';
   @override String get exportQ2 => 'Qu\'est-ce qui t\'a bloqué ?';
   @override String get exportQ3 => 'Sur quoi as-tu avancé ?';
+
+  @override String get skip => 'Ignorer';
+  @override String get getStarted => 'Commencer';
+  @override String get close => 'Fermer';
+  @override String get help => 'Aide';
+  @override String get onboarding1Title => 'Bienvenue sur DayDump';
+  @override String get onboarding1Subtitle =>
+      '5 minutes de réflexion en fin de journée.\n3 questions. Tout sur ton appareil.';
+  @override String get onboarding2Title => 'Trois questions honnêtes';
+  @override String get onboarding2Subtitle =>
+      'Qu\'as-tu accompli ? Qu\'est-ce qui t\'a bloqué ? C\'est quoi la suite ?\nQuelques mots suffisent.';
+  @override String get onboarding3Title => 'Construis une série';
+  @override String get onboarding3Subtitle =>
+      'Reviens chaque jour.\nLes petits efforts finissent par compter.';
+  @override String get onboarding4Title => 'Ton journal, ton appareil';
+  @override String get onboarding4Subtitle =>
+      'Pas de compte. Pas de nuage.\nTes données ne quittent jamais ton téléphone.';
 
   @override String get notifTitle => 'C\'est l\'heure de ton DayDump';
   @override String get notifBody => 'Comment s\'est passée ta journée ?';

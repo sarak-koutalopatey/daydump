@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../l10n/app_strings.dart';
 import '../models/entry.dart';
+import 'onboarding_screen.dart';
 import '../services/notification_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_colors.dart';
@@ -86,6 +87,8 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           Divider(height: 1, color: context.cBorder2),
                           _ExportRow(entries: state.entries, s: s),
+                          Divider(height: 1, color: context.cBorder2),
+                          _HelpRow(s: s),
                           Divider(height: 1, color: context.cBorder2),
                           _AboutRow(s: s),
                         ],
@@ -1136,6 +1139,27 @@ class _NotificationPermissionSheet extends StatelessWidget {
               onTap: () => Navigator.of(context).pop(false),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Help ────────────────────────────────────────────────────────────────────
+
+class _HelpRow extends StatelessWidget {
+  final AppStrings s;
+  const _HelpRow({required this.s});
+
+  @override
+  Widget build(BuildContext context) {
+    return _RowShell(
+      label: s.help,
+      trailing: Icon(Icons.help_outline_rounded, color: context.cText3, size: 18),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const OnboardingScreen(isReview: true),
+          fullscreenDialog: true,
         ),
       ),
     );
