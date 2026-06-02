@@ -22,6 +22,8 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
+  int _notifHour = 20;
+  int _notifMinute = 0;
 
   int get _pageCount => widget.isReview ? 4 : 5;
   bool get _isLast => _currentPage == _pageCount - 1;
@@ -70,6 +72,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: _notifHour, minute: _notifMinute),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: Theme.of(ctx).colorScheme.copyWith(primary: kAccent),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _notifHour = picked.hour;
+        _notifMinute = picked.minute;
+      });
+    }
+  }
+
   Future<void> _allowAndComplete() async {
     bool granted = false;
     try {
@@ -79,8 +100,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (granted && mounted) {
       final appState = context.read<AppState>();
       final lang = Localizations.localeOf(context).languageCode;
-      await appState.setReminder(enabled: true, hour: 20, minute: 0);
-      await NotificationService.scheduleDailyReminder(20, 0, lang: lang);
+      await appState.setReminder(
+          enabled: true, hour: _notifHour, minute: _notifMinute);
+      await NotificationService.scheduleDailyReminder(
+          _notifHour, _notifMinute,
+          lang: lang);
     }
 
     if (mounted) _complete();
@@ -178,6 +202,47 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(height: 20),
 
                   if (_isNotifPage) ...[
+                    Pressable(
+                      onTap: _pickTime,
+                      useBackgroundShift: true,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: context.cSurface,
+                          border: Border.all(color: context.cBorder),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                s.time,
+                                style: GoogleFonts.figtree(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: context.cText,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${_notifHour.toString().padLeft(2, '0')}:${_notifMinute.toString().padLeft(2, '0')}',
+                              style: GoogleFonts.figtree(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: context.cAccent,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(Icons.chevron_right_rounded,
+                                color: context.cText3, size: 18),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     PrimaryButton(
                       label: s.allowNotifications,
                       onTap: _allowAndComplete,
