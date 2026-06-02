@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../data/sample_data.dart';
+import '../l10n/app_strings.dart';
 import '../models/entry.dart';
 import '../theme/app_colors.dart';
 import '../widgets/pressable.dart';
@@ -20,7 +20,8 @@ class _DetailScreenState extends State<DetailScreen> {
   bool _exported = false;
 
   Future<void> _export() async {
-    await Clipboard.setData(ClipboardData(text: widget.entry.toExportText()));
+    final exportText = widget.entry.toExportText(context.s);
+    await Clipboard.setData(ClipboardData(text: exportText));
     if (!mounted) return;
     setState(() => _exported = true);
     Future.delayed(const Duration(milliseconds: 1800), () {
@@ -30,10 +31,11 @@ class _DetailScreenState extends State<DetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
     final blocks = [
-      (label: 'ACCOMPLISHED', q: kQuestions[0].title, answer: widget.entry.accomplished),
-      (label: 'GOT IN THE WAY', q: kQuestions[1].title, answer: widget.entry.blockers),
-      (label: 'TOMORROW', q: kQuestions[2].title, answer: widget.entry.tomorrow),
+      (label: s.labelAccomplished, q: s.exportQ1, answer: widget.entry.accomplished),
+      (label: s.labelGotInTheWay, q: s.exportQ2, answer: widget.entry.blockers),
+      (label: s.labelTomorrow, q: s.exportQ3, answer: widget.entry.tomorrow),
     ];
 
     return Scaffold(
@@ -42,7 +44,6 @@ class _DetailScreenState extends State<DetailScreen> {
         bottom: false,
         child: Stack(
           children: [
-            // Scrollable content
             CustomScrollView(
               slivers: [
                 SliverToBoxAdapter(
@@ -68,7 +69,7 @@ class _DetailScreenState extends State<DetailScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          widget.entry.dayLabel,
+                          widget.entry.dayLabelFor(s),
                           style: GoogleFonts.figtree(
                             fontSize: 17,
                             fontWeight: FontWeight.w600,
@@ -77,7 +78,7 @@ class _DetailScreenState extends State<DetailScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          widget.entry.dateLabel,
+                          widget.entry.dateLabelFor(s),
                           style: GoogleFonts.figtree(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
@@ -109,12 +110,11 @@ class _DetailScreenState extends State<DetailScreen> {
                 ),
               ],
             ),
-            // Bottom gradient + export button
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
-              child: _ExportBar(exported: _exported, onExport: _export),
+              child: _ExportBar(exported: _exported, s: s, onExport: _export),
             ),
           ],
         ),
@@ -174,9 +174,14 @@ class _AnswerBlock extends StatelessWidget {
 
 class _ExportBar extends StatelessWidget {
   final bool exported;
+  final AppStrings s;
   final VoidCallback onExport;
 
-  const _ExportBar({required this.exported, required this.onExport});
+  const _ExportBar({
+    required this.exported,
+    required this.s,
+    required this.onExport,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -200,13 +205,13 @@ class _ExportBar extends StatelessWidget {
         child: exported
             ? SecondaryButton(
                 key: const ValueKey('copied'),
-                label: 'Copied to clipboard',
+                label: s.copiedToClipboard,
                 leading: Icon(Icons.check_rounded, color: context.cAccent, size: 18),
                 onTap: null,
               )
             : SecondaryButton(
                 key: const ValueKey('export'),
-                label: 'Export as text',
+                label: s.exportAsText,
                 leading: const Icon(Icons.download_outlined, size: 18),
                 onTap: onExport,
               ),

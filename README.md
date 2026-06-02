@@ -2,6 +2,13 @@
 
 > Journal de fin de journée sans friction pour ceux qui détestent tenir un journal. 3 questions, 5 minutes, tout reste sur ton téléphone.
 
+<!-- Screenshots — remplacer ces chemins par de vraies captures une fois l'app installée sur un appareil physique -->
+<!--
+| Accueil | Check-in | Historique | Paramètres |
+|:---:|:---:|:---:|:---:|
+| ![Accueil](docs/screenshots/home.png) | ![Check-in](docs/screenshots/checkin.png) | ![Historique](docs/screenshots/history.png) | ![Paramètres](docs/screenshots/settings.png) |
+-->
+
 ---
 
 ## À propos
@@ -67,6 +74,14 @@ dependencies:
 
   # Gestion d'état (ChangeNotifier)
   provider: ^6.1.2
+
+  # Rappels quotidiens (notifications locales planifiées)
+  flutter_local_notifications: ^17.2.3
+  timezone: ^0.9.4
+  flutter_timezone: ^1.0.6
+
+  # Ouvrir les réglages de notification système si permission refusée
+  app_settings: ^5.1.1
 ```
 
 ---
@@ -75,15 +90,17 @@ dependencies:
 
 ```
 lib/
-├── main.dart                   # Point d'entrée, configuration des thèmes clair/sombre
+├── main.dart                   # Point d'entrée async, configuration des thèmes clair/sombre
 ├── models/
-│   └── entry.dart              # Modèle JournalEntry (immuable)
+│   └── entry.dart              # Modèle JournalEntry (immuable, copyWith)
 ├── data/
 │   └── sample_data.dart        # Données d'exemple, questions, citations motivantes
 ├── state/
 │   └── app_state.dart          # ChangeNotifier central (entrées, streak, persistance)
 ├── theme/
 │   └── app_colors.dart         # Tokens de couleur via extension sur BuildContext
+├── services/
+│   └── notification_service.dart  # Rappels locaux — init, permission, scheduleDailyReminder
 ├── widgets/
 │   ├── pressable.dart          # Primitive d'interaction (opacité/fond, 120 ms)
 │   ├── primary_button.dart     # Bouton CTA pleine largeur (amber, 56 pt)
@@ -96,7 +113,7 @@ lib/
     ├── completion_screen.dart  # Écran de célébration
     ├── history_screen.dart     # Historique groupé
     ├── detail_screen.dart      # Détail d'une entrée + export
-    └── settings_screen.dart    # Paramètres
+    └── settings_screen.dart    # Paramètres (thème, rappels, export, danger zone)
 ```
 
 ---
@@ -144,5 +161,44 @@ flutter run
 
 ```bash
 flutter test
+```
+
+### Build iOS (TestFlight / App Store)
+
+```bash
+# Build IPA (nécessite Xcode + un compte Apple Developer)
+flutter build ipa --release
+
+# L'archive générée se trouve dans :
+# build/ios/archive/Runner.xcarchive
+# Distribuer via Xcode Organizer → Distribute App → TestFlight
+```
+
+> **Note iOS** : après un `flutter clean`, relancer `flutter run` une première fois (ou `cd ios && pod install`) pour régénérer les symlinks des plugins natifs.
+
+### Build Android (Play Store / APK direct)
+
+```bash
+# App Bundle (recommandé pour le Play Store)
+flutter build appbundle --release
+
+# APK standalone (installation directe)
+flutter build apk --release
+
+# Fichiers générés :
+# build/app/outputs/bundle/release/app-release.aab
+# build/app/outputs/flutter-apk/app-release.apk
+```
+
+---
+
+## Icône de l'application
+
+Soleil blanc sur fond amber `#F59E0B` — source : `assets/icon/icon.png` (1024 × 1024 px).
+
+Pour regénérer les icônes après modification de la source :
+
+```bash
+dart run flutter_launcher_icons
 ```
 

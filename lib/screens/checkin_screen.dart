@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../data/sample_data.dart';
+import '../l10n/app_strings.dart';
 import '../state/app_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/pressable.dart';
@@ -75,7 +75,13 @@ class _CheckInScreenState extends State<CheckInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final q = kQuestions[_step];
+    final s = context.s;
+    final questions = [
+      (label: s.q1Label, title: s.q1Title, hint: s.q1Hint),
+      (label: s.q2Label, title: s.q2Title, hint: s.q2Hint),
+      (label: s.q3Label, title: s.q3Title, hint: s.q3Hint),
+    ];
+    final q = questions[_step];
     final isLast = _step == 2;
 
     return Scaffold(
@@ -84,7 +90,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _CheckInHeader(step: _step, total: 3, onBack: _goBack),
+            _CheckInHeader(step: _step, total: 3, s: s, onBack: _goBack),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
@@ -126,13 +132,14 @@ class _CheckInScreenState extends State<CheckInScreen> {
                       child: _AnswerInput(
                         controller: _controllers[_step],
                         focusNode: _focusNodes[_step],
-                        questionTitle: q.title,
+                        hintText: s.typeYourAnswer,
+                        charCountLabel: s.charCount,
                         onChanged: (v) => _answers[_step] = v,
                       ),
                     ),
                     const SizedBox(height: 16),
                     PrimaryButton(
-                      label: isLast ? 'Finish' : 'Next',
+                      label: isLast ? s.finish : s.next,
                       trailing: isLast
                           ? const Icon(Icons.check_rounded)
                           : const Icon(Icons.arrow_forward_rounded),
@@ -153,11 +160,13 @@ class _CheckInScreenState extends State<CheckInScreen> {
 class _CheckInHeader extends StatelessWidget {
   final int step;
   final int total;
+  final AppStrings s;
   final VoidCallback onBack;
 
   const _CheckInHeader({
     required this.step,
     required this.total,
+    required this.s,
     required this.onBack,
   });
 
@@ -185,7 +194,7 @@ class _CheckInHeader extends StatelessWidget {
           ),
           Expanded(
             child: Semantics(
-              label: 'Step ${step + 1} of $total',
+              label: s.stepOf(step + 1, total),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(total, (i) {
@@ -216,13 +225,15 @@ class _CheckInHeader extends StatelessWidget {
 class _AnswerInput extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
-  final String questionTitle;
+  final String hintText;
+  final String Function(int) charCountLabel;
   final ValueChanged<String> onChanged;
 
   const _AnswerInput({
     required this.controller,
     required this.focusNode,
-    required this.questionTitle,
+    required this.hintText,
+    required this.charCountLabel,
     required this.onChanged,
   });
 
@@ -267,7 +278,7 @@ class _AnswerInputState extends State<_AnswerInput> {
                 height: 1.5,
               ),
               decoration: InputDecoration(
-                hintText: 'Type your answer…',
+                hintText: widget.hintText,
                 hintStyle: GoogleFonts.figtree(
                   fontSize: 17,
                   fontWeight: FontWeight.w400,
@@ -284,7 +295,7 @@ class _AnswerInputState extends State<_AnswerInput> {
           Align(
             alignment: Alignment.centerRight,
             child: Text(
-              '$_charCount chars',
+              widget.charCountLabel(_charCount),
               style: GoogleFonts.figtree(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,

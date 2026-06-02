@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'services/notification_service.dart';
@@ -21,13 +22,20 @@ class DayDumpApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = context.watch<AppState>().themeMode;
+    final state = context.watch<AppState>();
     return MaterialApp(
       title: 'DayDump',
       debugShowCheckedModeBanner: false,
+      locale: state.languageCode != null ? Locale(state.languageCode!) : null,
+      supportedLocales: const [Locale('en'), Locale('fr')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
-      themeMode: themeMode,
+      themeMode: state.themeMode,
       home: const MainScaffold(),
     );
   }

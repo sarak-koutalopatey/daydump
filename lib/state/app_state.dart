@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/entry.dart';
@@ -15,6 +14,7 @@ class AppState extends ChangeNotifier {
   bool _remindersEnabled = false;
   int _reminderHour = 20;
   int _reminderMinute = 0;
+  String? _languageCode; // null = follow device language
 
   List<JournalEntry> get entries => _entries;
   int get streak => _streak;
@@ -24,9 +24,7 @@ class AppState extends ChangeNotifier {
   bool get remindersEnabled => _remindersEnabled;
   int get reminderHour => _reminderHour;
   int get reminderMinute => _reminderMinute;
-
-  String get motivationalLine =>
-      kMotivationalLines[Random().nextInt(kMotivationalLines.length)];
+  String? get languageCode => _languageCode;
 
   List<JournalEntry> get thisWeekEntries =>
       _entries.where((e) {
@@ -70,6 +68,7 @@ class AppState extends ChangeNotifier {
     _remindersEnabled = prefs.getBool('remindersEnabled') ?? false;
     _reminderHour = prefs.getInt('reminderHour') ?? 20;
     _reminderMinute = prefs.getInt('reminderMinute') ?? 0;
+    _languageCode = prefs.getString('languageCode');
     notifyListeners();
   }
 
@@ -112,6 +111,12 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setLanguageCode(String? code) async {
+    _languageCode = code;
+    await _persist();
+    notifyListeners();
+  }
+
   Future<void> setReminder({
     required bool enabled,
     int? hour,
@@ -146,6 +151,11 @@ class AppState extends ChangeNotifier {
     await prefs.setBool('remindersEnabled', _remindersEnabled);
     await prefs.setInt('reminderHour', _reminderHour);
     await prefs.setInt('reminderMinute', _reminderMinute);
+    if (_languageCode != null) {
+      await prefs.setString('languageCode', _languageCode!);
+    } else {
+      await prefs.remove('languageCode');
+    }
   }
 
   DateTime _normalizeDate(DateTime dt) =>

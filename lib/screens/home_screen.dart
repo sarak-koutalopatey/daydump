@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_strings.dart';
 import '../models/entry.dart';
 import '../state/app_state.dart';
 import '../theme/app_colors.dart';
@@ -19,8 +20,10 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final s = context.s;
+    final locale = Localizations.localeOf(context).toString();
     final now = DateTime.now();
-    final dateLine = DateFormat('EEEE, MMMM d').format(now).toUpperCase();
+    final dateLine = DateFormat('EEEE, MMMM d', locale).format(now).toUpperCase();
 
     return Scaffold(
       backgroundColor: context.cBg,
@@ -32,19 +35,17 @@ class HomeScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // Greeting header
                   _GreetingHeader(
                     dateLine: dateLine,
                     userName: state.userName,
                     completedToday: state.completedToday,
+                    s: s,
                   ),
                   const SizedBox(height: 24),
-                  // Streak card
-                  _StreakCard(streak: state.streak),
+                  _StreakCard(streak: state.streak, s: s),
                   const SizedBox(height: 24),
-                  // Primary CTA
                   PrimaryButton(
-                    label: state.completedToday ? 'Edit my DayDump' : 'Do my DayDump',
+                    label: state.completedToday ? s.editMyDayDump : s.doMyDayDump,
                     trailing: const Icon(Icons.arrow_forward_rounded),
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -54,9 +55,9 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  // Recent section
                   _RecentSection(
                     entries: state.entries,
+                    s: s,
                     onViewAll: () => onTabChange(NavTab.history),
                     onOpenEntry: (e) => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => DetailScreen(entry: e)),
@@ -77,11 +78,13 @@ class _GreetingHeader extends StatelessWidget {
   final String dateLine;
   final String userName;
   final bool completedToday;
+  final AppStrings s;
 
   const _GreetingHeader({
     required this.dateLine,
     required this.userName,
     required this.completedToday,
+    required this.s,
   });
 
   @override
@@ -100,7 +103,7 @@ class _GreetingHeader extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Hi, $userName.',
+          s.hiName(userName),
           style: GoogleFonts.figtree(
             fontSize: 32,
             fontWeight: FontWeight.w600,
@@ -111,7 +114,7 @@ class _GreetingHeader extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          completedToday ? 'Today is logged. Nice work.' : 'How did today go?',
+          completedToday ? s.todayLogged : s.howDidTodayGo,
           style: GoogleFonts.figtree(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -126,7 +129,8 @@ class _GreetingHeader extends StatelessWidget {
 
 class _StreakCard extends StatelessWidget {
   final int streak;
-  const _StreakCard({required this.streak});
+  final AppStrings s;
+  const _StreakCard({required this.streak, required this.s});
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +172,7 @@ class _StreakCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'days in a row',
+                      s.daysInARow,
                       style: GoogleFonts.figtree(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -179,7 +183,7 @@ class _StreakCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Best streak yet. Keep it going.',
+                  s.bestStreak,
                   style: GoogleFonts.figtree(
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
@@ -197,11 +201,13 @@ class _StreakCard extends StatelessWidget {
 
 class _RecentSection extends StatelessWidget {
   final List<JournalEntry> entries;
+  final AppStrings s;
   final VoidCallback onViewAll;
   final ValueChanged<JournalEntry> onOpenEntry;
 
   const _RecentSection({
     required this.entries,
+    required this.s,
     required this.onViewAll,
     required this.onOpenEntry,
   });
@@ -215,7 +221,7 @@ class _RecentSection extends StatelessWidget {
         Row(
           children: [
             Text(
-              'RECENT',
+              s.recent,
               style: GoogleFonts.figtree(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -229,7 +235,7 @@ class _RecentSection extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Text(
-                  'View all',
+                  s.viewAll,
                   style: GoogleFonts.figtree(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -256,7 +262,7 @@ class _RecentSection extends StatelessWidget {
                 return Column(
                   children: [
                     if (i > 0) Divider(height: 1, color: context.cBorder2),
-                    _EntryRow(entry: e, onTap: () => onOpenEntry(e)),
+                    _EntryRow(entry: e, s: s, onTap: () => onOpenEntry(e)),
                   ],
                 );
               }).toList(),
@@ -270,9 +276,10 @@ class _RecentSection extends StatelessWidget {
 
 class _EntryRow extends StatelessWidget {
   final JournalEntry entry;
+  final AppStrings s;
   final VoidCallback onTap;
 
-  const _EntryRow({required this.entry, required this.onTap});
+  const _EntryRow({required this.entry, required this.s, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -303,7 +310,7 @@ class _EntryRow extends StatelessWidget {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        entry.dayLabel,
+                        entry.dayLabelFor(s),
                         style: GoogleFonts.figtree(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -312,7 +319,7 @@ class _EntryRow extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '· ${entry.dateLabel}',
+                        '· ${entry.dateLabelFor(s)}',
                         style: GoogleFonts.figtree(
                           fontSize: 13,
                           fontWeight: FontWeight.w400,

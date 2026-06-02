@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../data/sample_data.dart';
+import '../l10n/app_strings.dart';
 import '../theme/app_colors.dart';
 import '../widgets/primary_button.dart';
 
@@ -18,8 +18,7 @@ class _CompletionScreenState extends State<CompletionScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scaleAnim;
-  final String _line =
-      kMotivationalLines[Random().nextInt(kMotivationalLines.length)];
+  final int _lineIndex = Random().nextInt(4);
 
   @override
   void initState() {
@@ -43,6 +42,9 @@ class _CompletionScreenState extends State<CompletionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
+    final line = s.motivationalLines[_lineIndex];
+
     return Scaffold(
       backgroundColor: context.cBg,
       body: SafeArea(
@@ -52,7 +54,6 @@ class _CompletionScreenState extends State<CompletionScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const SizedBox(height: 24),
-              // Centered celebration content
               Column(
                 children: [
                   ScaleTransition(
@@ -73,7 +74,7 @@ class _CompletionScreenState extends State<CompletionScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'All done.',
+                    s.allDone,
                     style: GoogleFonts.figtree(
                       fontSize: 30,
                       fontWeight: FontWeight.w600,
@@ -82,7 +83,6 @@ class _CompletionScreenState extends State<CompletionScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Streak badge
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
@@ -99,7 +99,7 @@ class _CompletionScreenState extends State<CompletionScreen>
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '${widget.streak} days in a row',
+                          s.daysInARowBadge(widget.streak),
                           style: GoogleFonts.figtree(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -113,7 +113,7 @@ class _CompletionScreenState extends State<CompletionScreen>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Text(
-                      _line,
+                      line,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.figtree(
                         fontSize: 16,
@@ -125,11 +125,9 @@ class _CompletionScreenState extends State<CompletionScreen>
                   ),
                 ],
               ),
-              // Back to home CTA
               PrimaryButton(
-                label: 'Back to home',
+                label: s.backToHome,
                 onTap: () {
-                  // Pop all the way back to MainScaffold
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 },
               ),

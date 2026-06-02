@@ -1,3 +1,5 @@
+import '../l10n/app_strings.dart';
+
 class JournalEntry {
   final String id;
   final DateTime date;
@@ -15,32 +17,33 @@ class JournalEntry {
 
   String get preview => accomplished;
 
-  String get dayLabel {
+  String dayLabelFor(AppStrings s) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final entryDay = DateTime(date.year, date.month, date.day);
     final diff = today.difference(entryDay).inDays;
-    if (diff == 0) return 'Today';
-    if (diff == 1) return 'Yesterday';
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    return days[date.weekday - 1];
+    if (diff == 0) return s.dateToday;
+    if (diff == 1) return s.dateYesterday;
+    return s.weekdays[date.weekday - 1];
   }
 
-  String get dateLabel {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${months[date.month - 1]} ${date.day}';
+  String dateLabelFor(AppStrings s) {
+    return '${s.months[date.month - 1]} ${date.day}';
   }
 
-  String toExportText() => '''DayDump — $dayLabel, $dateLabel
+  // English fallback used only for backwards-compatible contexts
+  String get dayLabel => dayLabelFor(AppStrings('en'));
+  String get dateLabel => dateLabelFor(AppStrings('en'));
 
-What did you accomplish today?
+  String toExportText(AppStrings s) => '''${s.exportTitle(dayLabelFor(s), dateLabelFor(s))}
+
+${s.exportQ1}
 $accomplished
 
-What got in your way?
+${s.exportQ2}
 $blockers
 
-What will you tackle tomorrow?
+${s.exportQ3}
 $tomorrow
 ''';
 

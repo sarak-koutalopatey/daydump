@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_strings.dart';
 import '../models/entry.dart';
 import '../state/app_state.dart';
 import '../theme/app_colors.dart';
@@ -16,6 +17,7 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final s = context.s;
     final thisWeek = state.thisWeekEntries;
     final lastWeek = state.lastWeekEntries;
 
@@ -29,13 +31,12 @@ class HistoryScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  // Header
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 8),
                       Text(
-                        'History',
+                        s.historyTitle,
                         style: GoogleFonts.figtree(
                           fontSize: 32,
                           fontWeight: FontWeight.w600,
@@ -45,7 +46,7 @@ class HistoryScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '${state.entries.length} entries · all local',
+                        s.entriesCount(state.entries.length),
                         style: GoogleFonts.figtree(
                           fontSize: 15,
                           fontWeight: FontWeight.w400,
@@ -57,8 +58,9 @@ class HistoryScreen extends StatelessWidget {
                   if (thisWeek.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     _HistoryGroup(
-                      label: 'This week',
+                      label: s.thisWeek,
                       entries: thisWeek,
+                      s: s,
                       onOpenEntry: (e) => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => DetailScreen(entry: e)),
                       ),
@@ -67,8 +69,9 @@ class HistoryScreen extends StatelessWidget {
                   if (lastWeek.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     _HistoryGroup(
-                      label: 'Last week',
+                      label: s.lastWeek,
                       entries: lastWeek,
+                      s: s,
                       onOpenEntry: (e) => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => DetailScreen(entry: e)),
                       ),
@@ -88,11 +91,13 @@ class HistoryScreen extends StatelessWidget {
 class _HistoryGroup extends StatelessWidget {
   final String label;
   final List<JournalEntry> entries;
+  final AppStrings s;
   final ValueChanged<JournalEntry> onOpenEntry;
 
   const _HistoryGroup({
     required this.label,
     required this.entries,
+    required this.s,
     required this.onOpenEntry,
   });
 
@@ -113,7 +118,7 @@ class _HistoryGroup extends StatelessWidget {
         const SizedBox(height: 10),
         ...entries.map((e) => Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: _EntryCard(entry: e, onTap: () => onOpenEntry(e)),
+              child: _EntryCard(entry: e, s: s, onTap: () => onOpenEntry(e)),
             )),
       ],
     );
@@ -122,9 +127,10 @@ class _HistoryGroup extends StatelessWidget {
 
 class _EntryCard extends StatelessWidget {
   final JournalEntry entry;
+  final AppStrings s;
   final VoidCallback onTap;
 
-  const _EntryCard({required this.entry, required this.onTap});
+  const _EntryCard({required this.entry, required this.s, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +152,7 @@ class _EntryCard extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  entry.dayLabel,
+                  entry.dayLabelFor(s),
                   style: GoogleFonts.figtree(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -155,7 +161,7 @@ class _EntryCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  entry.dateLabel,
+                  entry.dateLabelFor(s),
                   style: GoogleFonts.figtree(
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
@@ -192,7 +198,7 @@ class _EntryCard extends StatelessWidget {
                   Icon(Icons.check_rounded, color: context.cAccent, size: 12),
                   const SizedBox(width: 4),
                   Text(
-                    '3 questions',
+                    s.threeQuestions,
                     style: GoogleFonts.figtree(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,

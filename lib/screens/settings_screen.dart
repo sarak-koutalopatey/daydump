@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/entry.dart';
 import '../services/notification_service.dart';
 import '../state/app_state.dart';
@@ -20,6 +21,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final s = context.s;
     return Scaffold(
       backgroundColor: context.cBg,
       body: SafeArea(
@@ -32,7 +34,7 @@ class SettingsScreen extends StatelessWidget {
                 delegate: SliverChildListDelegate([
                   const SizedBox(height: 8),
                   Text(
-                    'Settings',
+                    s.settingsTitle,
                     style: GoogleFonts.figtree(
                       fontSize: 32,
                       fontWeight: FontWeight.w600,
@@ -46,7 +48,7 @@ class SettingsScreen extends StatelessWidget {
                       Expanded(
                         child: _StatCard(
                           value: '${state.streak}',
-                          label: 'Day streak',
+                          label: s.dayStreak,
                           accent: true,
                         ),
                       ),
@@ -54,7 +56,7 @@ class SettingsScreen extends StatelessWidget {
                       Expanded(
                         child: _StatCard(
                           value: '${state.entries.length}',
-                          label: 'Entries',
+                          label: s.entriesLabel,
                         ),
                       ),
                     ],
@@ -70,19 +72,22 @@ class SettingsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       child: Column(
                         children: [
-                          _NameRow(name: state.userName),
+                          _NameRow(name: state.userName, s: s),
                           Divider(height: 1, color: context.cBorder2),
-                          _AppearanceRow(themeMode: state.themeMode),
+                          _LanguageRow(languageCode: state.languageCode, s: s),
+                          Divider(height: 1, color: context.cBorder2),
+                          _AppearanceRow(themeMode: state.themeMode, s: s),
                           Divider(height: 1, color: context.cBorder2),
                           _RemindersRow(
                             enabled: state.remindersEnabled,
                             hour: state.reminderHour,
                             minute: state.reminderMinute,
+                            s: s,
                           ),
                           Divider(height: 1, color: context.cBorder2),
-                          _ExportRow(entries: state.entries),
+                          _ExportRow(entries: state.entries, s: s),
                           Divider(height: 1, color: context.cBorder2),
-                          const _AboutRow(),
+                          _AboutRow(s: s),
                         ],
                       ),
                     ),
@@ -97,13 +102,13 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: _DeleteAllRow(entryCount: state.entries.length),
+                      child: _DeleteAllRow(entryCount: state.entries.length, s: s),
                     ),
                   ),
                   const SizedBox(height: 32),
                   Center(
                     child: Text(
-                      'DayDump · All data stays on your device',
+                      s.footer,
                       style: GoogleFonts.figtree(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
@@ -254,7 +259,8 @@ class _StatCard extends StatelessWidget {
 
 class _NameRow extends StatelessWidget {
   final String name;
-  const _NameRow({required this.name});
+  final AppStrings s;
+  const _NameRow({required this.name, required this.s});
 
   @override
   Widget build(BuildContext context) {
@@ -269,7 +275,7 @@ class _NameRow extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Your name',
+                  s.yourName,
                   style: GoogleFonts.figtree(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -298,7 +304,7 @@ class _NameRow extends StatelessWidget {
     final appState = context.read<AppState>();
     showDialog<void>(
       context: context,
-      builder: (_) => _NameDialog(initialName: name, appState: appState),
+      builder: (_) => _NameDialog(initialName: name, appState: appState, s: s),
     );
   }
 }
@@ -306,7 +312,12 @@ class _NameRow extends StatelessWidget {
 class _NameDialog extends StatefulWidget {
   final String initialName;
   final AppState appState;
-  const _NameDialog({required this.initialName, required this.appState});
+  final AppStrings s;
+  const _NameDialog({
+    required this.initialName,
+    required this.appState,
+    required this.s,
+  });
 
   @override
   State<_NameDialog> createState() => _NameDialogState();
@@ -329,11 +340,12 @@ class _NameDialogState extends State<_NameDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final s = widget.s;
     return AlertDialog(
       backgroundColor: context.cSurface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        'Your name',
+        s.yourName,
         style: GoogleFonts.figtree(
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -347,7 +359,7 @@ class _NameDialogState extends State<_NameDialog> {
         style: GoogleFonts.figtree(fontSize: 16, color: context.cText),
         cursorColor: context.cAccent,
         decoration: InputDecoration(
-          hintText: 'Enter your name',
+          hintText: s.enterYourName,
           hintStyle: GoogleFonts.figtree(color: context.cText3),
           enabledBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: context.cBorder),
@@ -361,7 +373,7 @@ class _NameDialogState extends State<_NameDialog> {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
-            'Cancel',
+            s.cancel,
             style: GoogleFonts.figtree(color: context.cText2),
           ),
         ),
@@ -371,7 +383,7 @@ class _NameDialogState extends State<_NameDialog> {
             Navigator.of(context).pop();
           },
           child: Text(
-            'Save',
+            s.save,
             style: GoogleFonts.figtree(
               color: context.cAccent,
               fontWeight: FontWeight.w600,
@@ -383,23 +395,120 @@ class _NameDialogState extends State<_NameDialog> {
   }
 }
 
+// ─── Language ────────────────────────────────────────────────────────────────
+
+class _LanguageRow extends StatelessWidget {
+  final String? languageCode;
+  final AppStrings s;
+  const _LanguageRow({required this.languageCode, required this.s});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = switch (languageCode) {
+      'en' => s.languageEnglish,
+      'fr' => s.languageFrench,
+      _ => s.languageSystem,
+    };
+    return _RowShell(
+      label: s.language,
+      trailing: _trailingValue(context, label),
+      onTap: () => showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: context.cSurface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (_) => _LanguageSheet(appState: context.read<AppState>()),
+      ),
+    );
+  }
+}
+
+class _LanguageSheet extends StatelessWidget {
+  final AppState appState;
+  const _LanguageSheet({required this.appState});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    final options = [
+      (code: null as String?, label: s.languageSystem),
+      (code: 'en' as String?, label: s.languageEnglish),
+      (code: 'fr' as String?, label: s.languageFrench),
+    ];
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sheetHandle(context),
+            Text(
+              s.language,
+              style: GoogleFonts.figtree(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: context.cText,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...options.map((opt) {
+              final selected = appState.languageCode == opt.code;
+              return Pressable(
+                onTap: () {
+                  appState.setLanguageCode(opt.code);
+                  Navigator.of(context).pop();
+                },
+                useBackgroundShift: true,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          opt.label,
+                          style: GoogleFonts.figtree(
+                            fontSize: 16,
+                            fontWeight:
+                                selected ? FontWeight.w600 : FontWeight.w400,
+                            color: context.cText,
+                          ),
+                        ),
+                      ),
+                      if (selected)
+                        Icon(Icons.check_rounded,
+                            color: context.cAccent, size: 20),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─── Appearance ──────────────────────────────────────────────────────────────
 
 class _AppearanceRow extends StatelessWidget {
   final ThemeMode themeMode;
-  const _AppearanceRow({required this.themeMode});
-
-  String get _label => switch (themeMode) {
-        ThemeMode.system => 'System',
-        ThemeMode.light => 'Light',
-        ThemeMode.dark => 'Dark',
-      };
+  final AppStrings s;
+  const _AppearanceRow({required this.themeMode, required this.s});
 
   @override
   Widget build(BuildContext context) {
+    final label = switch (themeMode) {
+      ThemeMode.system => s.appearanceSystem,
+      ThemeMode.light => s.appearanceLight,
+      ThemeMode.dark => s.appearanceDark,
+    };
     return _RowShell(
-      label: 'Appearance',
-      trailing: _trailingValue(context, _label),
+      label: s.appearance,
+      trailing: _trailingValue(context, label),
       onTap: () => showModalBottomSheet<void>(
         context: context,
         backgroundColor: context.cSurface,
@@ -418,6 +527,7 @@ class _AppearanceSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
@@ -427,7 +537,7 @@ class _AppearanceSheet extends StatelessWidget {
           children: [
             _sheetHandle(context),
             Text(
-              'Appearance',
+              s.appearance,
               style: GoogleFonts.figtree(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -437,9 +547,9 @@ class _AppearanceSheet extends StatelessWidget {
             const SizedBox(height: 8),
             ...ThemeMode.values.map((mode) {
               final label = switch (mode) {
-                ThemeMode.system => 'System',
-                ThemeMode.light => 'Light',
-                ThemeMode.dark => 'Dark',
+                ThemeMode.system => s.appearanceSystem,
+                ThemeMode.light => s.appearanceLight,
+                ThemeMode.dark => s.appearanceDark,
               };
               final selected = appState.themeMode == mode;
               return Pressable(
@@ -485,22 +595,22 @@ class _RemindersRow extends StatelessWidget {
   final bool enabled;
   final int hour;
   final int minute;
+  final AppStrings s;
   const _RemindersRow({
     required this.enabled,
     required this.hour,
     required this.minute,
+    required this.s,
   });
-
-  String get _label {
-    if (!enabled) return 'Off';
-    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
-  }
 
   @override
   Widget build(BuildContext context) {
+    final label = enabled
+        ? '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}'
+        : s.remindersOff;
     return _RowShell(
-      label: 'Reminders',
-      trailing: _trailingValue(context, _label),
+      label: s.reminders,
+      trailing: _trailingValue(context, label),
       onTap: () => showModalBottomSheet<void>(
         context: context,
         backgroundColor: context.cSurface,
@@ -541,9 +651,12 @@ class _RemindersSheetState extends State<_RemindersSheet> {
     _minute = widget.appState.reminderMinute;
   }
 
+  String get _lang =>
+      Localizations.localeOf(widget.parentContext).languageCode;
+
   Future<void> _setEnabled(bool val) async {
+    final s = widget.parentContext.s;
     if (val) {
-      // Show rationale before triggering the native permission dialog
       final proceed = await _showNotificationRationale();
       if (!proceed || !mounted) return;
 
@@ -551,26 +664,27 @@ class _RemindersSheetState extends State<_RemindersSheet> {
       try {
         granted = await NotificationService.requestPermission();
       } catch (e) {
-        if (mounted) _showPermissionDeniedDialog();
+        if (mounted) _showPermissionDeniedDialog(s);
         return;
       }
 
       if (!mounted) return;
       if (!granted) {
-        _showPermissionDeniedDialog();
+        _showPermissionDeniedDialog(s);
         return;
       }
 
       try {
         await widget.appState
             .setReminder(enabled: true, hour: _hour, minute: _minute);
-        await NotificationService.scheduleDailyReminder(_hour, _minute);
+        await NotificationService.scheduleDailyReminder(_hour, _minute,
+            lang: _lang);
       } catch (e) {
         if (!mounted) return;
         await widget.appState.setReminder(enabled: false);
         _showDialog(
-          title: 'Could not set reminder',
-          message: 'An error occurred: ${e.runtimeType}. Please try again.',
+          title: s.couldNotSetReminder,
+          message: s.errorOccurred(e.runtimeType.toString()),
         );
         return;
       }
@@ -599,7 +713,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
     return result == true;
   }
 
-  void _showPermissionDeniedDialog() {
+  void _showPermissionDeniedDialog(AppStrings s) {
     final ctx = widget.parentContext;
     showDialog<void>(
       context: ctx,
@@ -607,7 +721,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
         backgroundColor: ctx.cSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Notifications blocked',
+          s.notificationsBlocked,
           style: GoogleFonts.figtree(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -615,7 +729,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
           ),
         ),
         content: Text(
-          'Allow notifications for DayDump in your device settings to receive daily reminders.',
+          s.notificationsBlockedMessage,
           style: GoogleFonts.figtree(
             fontSize: 15,
             fontWeight: FontWeight.w400,
@@ -627,7 +741,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
-              'Not now',
+              s.notNow,
               style: GoogleFonts.figtree(color: ctx.cText2),
             ),
           ),
@@ -637,7 +751,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
               AppSettings.openAppSettings(type: AppSettingsType.notification);
             },
             child: Text(
-              'Open Settings',
+              s.openSettings,
               style: GoogleFonts.figtree(
                 color: kAccent,
                 fontWeight: FontWeight.w600,
@@ -651,6 +765,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
 
   void _showDialog({required String title, required String message}) {
     final ctx = widget.parentContext;
+    final s = ctx.s;
     showDialog<void>(
       context: ctx,
       builder: (_) => AlertDialog(
@@ -677,7 +792,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
-              'OK',
+              s.ok,
               style: GoogleFonts.figtree(
                 color: kAccent,
                 fontWeight: FontWeight.w600,
@@ -690,6 +805,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
   }
 
   Future<void> _pickTime() async {
+    final s = context.s;
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: _hour, minute: _minute),
@@ -706,12 +822,13 @@ class _RemindersSheetState extends State<_RemindersSheet> {
       await widget.appState.setReminder(
           enabled: true, hour: picked.hour, minute: picked.minute);
       await NotificationService.scheduleDailyReminder(
-          picked.hour, picked.minute);
+          picked.hour, picked.minute,
+          lang: _lang);
     } catch (e) {
       if (mounted) {
         _showDialog(
-          title: 'Could not set reminder',
-          message: 'An error occurred: ${e.runtimeType}. Please try again.',
+          title: s.couldNotSetReminder,
+          message: s.errorOccurred(e.runtimeType.toString()),
         );
       }
       return;
@@ -725,6 +842,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
@@ -734,7 +852,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
           children: [
             _sheetHandle(context),
             Text(
-              'Reminders',
+              s.reminders,
               style: GoogleFonts.figtree(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -746,7 +864,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
               children: [
                 Expanded(
                   child: Text(
-                    'Daily reminder',
+                    s.dailyReminder,
                     style: GoogleFonts.figtree(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -777,7 +895,7 @@ class _RemindersSheetState extends State<_RemindersSheet> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    'Time',
+                                    s.time,
                                     style: GoogleFonts.figtree(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
@@ -815,12 +933,13 @@ class _RemindersSheetState extends State<_RemindersSheet> {
 
 class _ExportRow extends StatelessWidget {
   final List<JournalEntry> entries;
-  const _ExportRow({required this.entries});
+  final AppStrings s;
+  const _ExportRow({required this.entries, required this.s});
 
   @override
   Widget build(BuildContext context) {
     return _RowShell(
-      label: 'Export all entries',
+      label: s.exportAllEntries,
       trailing:
           Icon(Icons.ios_share_rounded, color: context.cText3, size: 18),
       onTap: () => _export(context),
@@ -829,14 +948,14 @@ class _ExportRow extends StatelessWidget {
 
   void _export(BuildContext context) {
     if (entries.isEmpty) return;
+    final s = context.s;
     final sorted = [...entries]..sort((a, b) => a.date.compareTo(b.date));
     final buffer = StringBuffer()
-      ..writeln('DayDump — My Journal')
-      ..writeln(
-          '${sorted.length} ${sorted.length == 1 ? 'entry' : 'entries'}\n');
+      ..writeln(s.exportJournalHeader)
+      ..writeln('${s.exportCountLine(sorted.length)}\n');
     for (final entry in sorted) {
       buffer
-        ..writeln(entry.toExportText())
+        ..writeln(entry.toExportText(s))
         ..writeln();
     }
     final box = context.findRenderObject() as RenderBox?;
@@ -845,7 +964,7 @@ class _ExportRow extends StatelessWidget {
         : Rect.fromLTWH(0, 0, 100, 100);
     Share.share(
       buffer.toString(),
-      subject: 'My DayDump Journal',
+      subject: s.exportJournalHeader,
       sharePositionOrigin: origin,
     );
   }
@@ -855,7 +974,8 @@ class _ExportRow extends StatelessWidget {
 
 class _DeleteAllRow extends StatelessWidget {
   final int entryCount;
-  const _DeleteAllRow({required this.entryCount});
+  final AppStrings s;
+  const _DeleteAllRow({required this.entryCount, required this.s});
 
   @override
   Widget build(BuildContext context) {
@@ -870,7 +990,7 @@ class _DeleteAllRow extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Delete all entries',
+                  s.deleteAllEntries,
                   style: GoogleFonts.figtree(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -907,11 +1027,12 @@ class _DeleteAllDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
     return AlertDialog(
       backgroundColor: context.cSurface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        'Delete all entries?',
+        s.deleteAllEntriesTitle,
         style: GoogleFonts.figtree(
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -919,7 +1040,7 @@ class _DeleteAllDialog extends StatelessWidget {
         ),
       ),
       content: Text(
-        'This will permanently delete $entryCount ${entryCount == 1 ? 'entry' : 'entries'}. This cannot be undone.',
+        s.deleteAllEntriesMessage(entryCount),
         style: GoogleFonts.figtree(
           fontSize: 15,
           fontWeight: FontWeight.w400,
@@ -931,7 +1052,7 @@ class _DeleteAllDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
-            'Cancel',
+            s.cancel,
             style: GoogleFonts.figtree(color: context.cText2),
           ),
         ),
@@ -941,7 +1062,7 @@ class _DeleteAllDialog extends StatelessWidget {
             Navigator.of(context).pop();
           },
           child: Text(
-            'Delete all',
+            s.deleteAll,
             style: GoogleFonts.figtree(
               color: context.cDanger,
               fontWeight: FontWeight.w600,
@@ -962,6 +1083,7 @@ class _NotificationPermissionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
     final timeStr =
         '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
     return SafeArea(
@@ -984,7 +1106,7 @@ class _NotificationPermissionSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Allow daily reminders',
+              s.allowDailyReminders,
               style: GoogleFonts.figtree(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -994,7 +1116,7 @@ class _NotificationPermissionSheet extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'DayDump will send you a reminder at $timeStr each day to complete your check-in.',
+              s.reminderDescription(timeStr),
               style: GoogleFonts.figtree(
                 fontSize: 15,
                 fontWeight: FontWeight.w400,
@@ -1005,12 +1127,12 @@ class _NotificationPermissionSheet extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             PrimaryButton(
-              label: 'Allow notifications',
+              label: s.allowNotifications,
               onTap: () => Navigator.of(context).pop(true),
             ),
             const SizedBox(height: 12),
             SecondaryButton(
-              label: 'Not now',
+              label: s.notNow,
               onTap: () => Navigator.of(context).pop(false),
             ),
           ],
@@ -1023,12 +1145,13 @@ class _NotificationPermissionSheet extends StatelessWidget {
 // ─── About ───────────────────────────────────────────────────────────────────
 
 class _AboutRow extends StatelessWidget {
-  const _AboutRow();
+  final AppStrings s;
+  const _AboutRow({required this.s});
 
   @override
   Widget build(BuildContext context) {
     return _RowShell(
-      label: 'About DayDump',
+      label: s.aboutDayDump,
       trailing:
           Icon(Icons.chevron_right_rounded, color: context.cText3, size: 18),
       onTap: () => showModalBottomSheet<void>(
@@ -1048,6 +1171,7 @@ class _AboutSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
@@ -1080,7 +1204,7 @@ class _AboutSheet extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Version 1.0.0',
+                      s.version,
                       style: GoogleFonts.figtree(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
@@ -1101,7 +1225,7 @@ class _AboutSheet extends StatelessWidget {
                 border: Border.all(color: context.cBorder),
               ),
               child: Text(
-                'Frictionless end-of-day journaling.\n3 questions. 5 minutes. All data stays on your device.',
+                s.aboutDescription,
                 style: GoogleFonts.figtree(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
@@ -1112,7 +1236,7 @@ class _AboutSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Made with Flutter · No cloud, no account',
+              s.madeWith,
               style: GoogleFonts.figtree(
                 fontSize: 13,
                 fontWeight: FontWeight.w400,

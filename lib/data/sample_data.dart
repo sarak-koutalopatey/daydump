@@ -58,28 +58,3 @@ final kSampleEntries = List<JournalEntry>.unmodifiable([
     tomorrow: 'Document the billing fix and close the ticket.',
   ),
 ]);
-
-const kQuestions = [
-  (
-    label: 'Question 1 of 3',
-    title: 'What did you accomplish today?',
-    hint: 'Big or small. One sentence is enough.',
-  ),
-  (
-    label: 'Question 2 of 3',
-    title: 'What got in your way?',
-    hint: 'A blocker, a distraction, a feeling.',
-  ),
-  (
-    label: 'Question 3 of 3',
-    title: 'What will you tackle tomorrow?',
-    hint: 'One thing you want to move forward.',
-  ),
-];
-
-const kMotivationalLines = [
-  'Small daily reps. That\'s the whole thing.',
-  'Showing up beats getting it right.',
-  'Tomorrow\'s easier because of today.',
-  'A line a day adds up.',
-];

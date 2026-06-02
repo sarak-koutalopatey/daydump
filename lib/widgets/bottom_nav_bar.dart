@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/app_strings.dart';
 import '../theme/app_colors.dart';
 import 'pressable.dart';
 
@@ -59,6 +60,12 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isActive ? context.cAccent : context.cText2;
+    final s = context.s;
+    final label = switch (tab) {
+      NavTab.home => s.navHome,
+      NavTab.history => s.navHistory,
+      NavTab.settings => s.navSettings,
+    };
     return Pressable(
       onTap: onTap,
       useBackgroundShift: true,
@@ -70,7 +77,7 @@ class _NavItem extends StatelessWidget {
             _NavIcon(tab: tab, isActive: isActive, color: color),
             const SizedBox(height: 2),
             Text(
-              tab.label,
+              label,
               style: GoogleFonts.figtree(
                 fontSize: 11,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
@@ -121,15 +128,3 @@ class _NavIcon extends StatelessWidget {
   }
 }
 
-extension on NavTab {
-  String get label {
-    switch (this) {
-      case NavTab.home:
-        return 'Home';
-      case NavTab.history:
-        return 'History';
-      case NavTab.settings:
-        return 'Settings';
-    }
-  }
-}

@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz_data;
+import '../l10n/app_strings.dart';
 
 class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
@@ -45,7 +46,12 @@ class NotificationService {
     return true;
   }
 
-  static Future<void> scheduleDailyReminder(int hour, int minute) async {
+  static Future<void> scheduleDailyReminder(
+    int hour,
+    int minute, {
+    String lang = 'en',
+  }) async {
+    final s = AppStrings(lang);
     await _plugin.cancel(0);
     final now = tz.TZDateTime.now(tz.local);
     var scheduled =
@@ -55,18 +61,18 @@ class NotificationService {
     }
     await _plugin.zonedSchedule(
       0,
-      'Time for your DayDump',
-      'How did today go?',
+      s.notifTitle,
+      s.notifBody,
       scheduled,
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
           'daydump_reminders',
-          'Daily reminder',
-          channelDescription: 'End-of-day check-in reminder',
+          s.notifChannelName,
+          channelDescription: s.notifChannelDescription,
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: const DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
