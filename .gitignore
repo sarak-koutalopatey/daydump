@@ -37,6 +37,7 @@ ios/Flutter/app.zip
 .DS_Store
 handoff.md
 CLAUDE.md
+graphify-out/
 
 # Pub
 .pub-cache/
