@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:app_settings/app_settings.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -87,6 +92,8 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           Divider(height: 1, color: context.cBorder2),
                           _ExportRow(entries: state.entries, s: s),
+                          Divider(height: 1, color: context.cBorder2),
+                          _ImportRow(s: s),
                           Divider(height: 1, color: context.cBorder2),
                           _HelpRow(s: s),
                           Divider(height: 1, color: context.cBorder2),
@@ -949,26 +956,111 @@ class _ExportRow extends StatelessWidget {
     );
   }
 
-  void _export(BuildContext context) {
+  Future<void> _export(BuildContext context) async {
     if (entries.isEmpty) return;
     final s = context.s;
-    final sorted = [...entries]..sort((a, b) => a.date.compareTo(b.date));
-    final buffer = StringBuffer()
-      ..writeln(s.exportJournalHeader)
-      ..writeln('${s.exportCountLine(sorted.length)}\n');
-    for (final entry in sorted) {
-      buffer
-        ..writeln(entry.toExportText(s))
-        ..writeln();
-    }
+    final dir = await getTemporaryDirectory();
+    final now = DateTime.now();
+    final filename =
+        'daydump_${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}.json';
+    final file = File('${dir.path}/$filename');
+    await file.writeAsString(jsonEncode({
+      'version': 1,
+      'entries': entries.map((e) => e.toJson()).toList(),
+    }));
+    if (!context.mounted) return;
     final box = context.findRenderObject() as RenderBox?;
     final origin = box != null
         ? box.localToGlobal(Offset.zero) & box.size
         : Rect.fromLTWH(0, 0, 100, 100);
-    Share.share(
-      buffer.toString(),
+    await Share.shareXFiles(
+      [XFile(file.path, mimeType: 'application/json')],
       subject: s.exportJournalHeader,
       sharePositionOrigin: origin,
+    );
+  }
+}
+
+// ─── Import entries ──────────────────────────────────────────────────────────
+
+class _ImportRow extends StatelessWidget {
+  final AppStrings s;
+  const _ImportRow({required this.s});
+
+  @override
+  Widget build(BuildContext context) {
+    return _RowShell(
+      label: s.importAllEntries,
+      trailing: Icon(Icons.download_rounded, color: context.cText3, size: 18),
+      onTap: () => _import(context),
+    );
+  }
+
+  Future<void> _import(BuildContext context) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    if (result == null || result.files.isEmpty) return;
+    final path = result.files.single.path;
+    if (path == null) return;
+
+    try {
+      final content = await File(path).readAsString();
+      final decoded = jsonDecode(content) as Map<String, dynamic>;
+      if (decoded['version'] != 1) throw const FormatException('unknown version');
+      final rawList = decoded['entries'] as List<dynamic>;
+      final entries = rawList
+          .map((e) => JournalEntry.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      if (!context.mounted) return;
+      final count = await context.read<AppState>().importEntries(entries);
+      if (!context.mounted) return;
+      _showDialog(context, context.s.importSuccess(count));
+    } catch (_) {
+      if (!context.mounted) return;
+      _showDialog(context, context.s.importError);
+    }
+  }
+
+  void _showDialog(BuildContext context, String message) {
+    final s = context.s;
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: context.cSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          s.importTitle,
+          style: GoogleFonts.figtree(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: context.cText,
+          ),
+        ),
+        content: Text(
+          message,
+          style: GoogleFonts.figtree(
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            color: context.cText2,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              s.ok,
+              style: GoogleFonts.figtree(
+                color: kAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

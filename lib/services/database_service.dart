@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/entry.dart';
@@ -12,6 +13,7 @@ class DatabaseService {
   static Future<Database> _open() async {
     final dir = await getDatabasesPath();
     final dbPath = join(dir, 'daydump.db');
+    if (kDebugMode) await deleteDatabase(dbPath);
     return openDatabase(
       dbPath,
       version: 1,

@@ -79,6 +79,10 @@ abstract class AppStrings {
   String get dailyReminder;
   String get time;
   String get exportAllEntries;
+  String get importAllEntries;
+  String get importTitle;
+  String importSuccess(int n);
+  String get importError;
   String get deleteAllEntries;
   String get deleteAllEntriesTitle;
   String deleteAllEntriesMessage(int n);
@@ -213,6 +217,12 @@ class _En extends AppStrings {
   @override String get dailyReminder => 'Daily reminder';
   @override String get time => 'Time';
   @override String get exportAllEntries => 'Export all entries';
+  @override String get importAllEntries => 'Import entries';
+  @override String get importTitle => 'Import entries';
+  @override String importSuccess(int n) =>
+      '$n ${n == 1 ? 'entry' : 'entries'} imported successfully.';
+  @override String get importError =>
+      'Could not read this file. Make sure it\'s a DayDump backup.';
   @override String get deleteAllEntries => 'Delete all entries';
   @override String get deleteAllEntriesTitle => 'Delete all entries?';
   @override String deleteAllEntriesMessage(int n) =>
@@ -359,6 +369,12 @@ class _Fr extends AppStrings {
   @override String get dailyReminder => 'Rappel quotidien';
   @override String get time => 'Heure';
   @override String get exportAllEntries => 'Exporter toutes les entrées';
+  @override String get importAllEntries => 'Importer des entrées';
+  @override String get importTitle => 'Importer des entrées';
+  @override String importSuccess(int n) =>
+      '$n ${n == 1 ? 'entrée importée' : 'entrées importées'} avec succès.';
+  @override String get importError =>
+      'Impossible de lire ce fichier. Assure-toi que c\'est une sauvegarde DayDump.';
   @override String get deleteAllEntries => 'Supprimer toutes les entrées';
   @override String get deleteAllEntriesTitle => 'Supprimer toutes les entrées ?';
   @override String deleteAllEntriesMessage(int n) =>

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/entry.dart';
@@ -47,6 +48,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
+    if (kDebugMode) await prefs.clear();
 
     // Load preferences first (needed to disambiguate first launch vs cleared data)
     final savedName = prefs.getString('userName');
@@ -173,6 +175,37 @@ class AppState extends ChangeNotifier {
     if (minute != null) _reminderMinute = minute;
     await _persistSettings();
     notifyListeners();
+  }
+
+  Future<int> importEntries(List<JournalEntry> imported) async {
+    for (final entry in imported) {
+      await DatabaseService.insertEntry(entry);
+    }
+    _entries = await DatabaseService.getAllEntries();
+    final today = _normalizeDate(DateTime.now());
+    _completedToday =
+        _entries.isNotEmpty && _normalizeDate(_entries.first.date) == today;
+    _streak = _computeStreak(_entries);
+    await _persistSettings();
+    notifyListeners();
+    return imported.length;
+  }
+
+  int _computeStreak(List<JournalEntry> entries) {
+    if (entries.isEmpty) return 0;
+    final sorted = [...entries]..sort((a, b) => b.date.compareTo(a.date));
+    var streak = 0;
+    var expected = _normalizeDate(DateTime.now());
+    for (final e in sorted) {
+      final day = _normalizeDate(e.date);
+      if (day == expected) {
+        streak++;
+        expected = expected.subtract(const Duration(days: 1));
+      } else if (day.isBefore(expected)) {
+        break;
+      }
+    }
+    return streak;
   }
 
   Future<void> clearAllData() async {
