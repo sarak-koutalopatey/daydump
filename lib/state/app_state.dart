@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/entry.dart';
-import '../data/sample_data.dart';
 import '../services/database_service.dart';
 import '../services/notification_service.dart';
 
@@ -88,14 +87,6 @@ class AppState extends ChangeNotifier {
         final today = _normalizeDate(DateTime.now());
         _completedToday =
             _entries.isNotEmpty && _normalizeDate(_entries.first.date) == today;
-      } else if (!_onboardingCompleted) {
-        // True first launch — seed sample data
-        _entries = List.from(kSampleEntries);
-        _streak = 12;
-        _completedToday = true;
-        for (final entry in _entries) {
-          await DatabaseService.insertEntry(entry);
-        }
       }
       // onboardingCompleted + empty DB = user cleared data intentionally
     }

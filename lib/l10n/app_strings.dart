@@ -132,6 +132,9 @@ abstract class AppStrings {
   String get onboarding4Subtitle;
   String get onboarding5Title;
   String get onboarding5Subtitle;
+  String get onboardingNameTitle;
+  String get onboardingNameSubtitle;
+  String get onboardingNameHint;
 
   // Notification
   String get notifTitle;
@@ -285,6 +288,10 @@ class _En extends AppStrings {
   @override String get onboarding5Title => 'Never miss a day';
   @override String get onboarding5Subtitle =>
       'Get a gentle reminder each evening to complete your check-in.\nYou can change the time anytime in Settings.';
+  @override String get onboardingNameTitle => 'What\'s your name?';
+  @override String get onboardingNameSubtitle =>
+      'We\'ll use it to say hi.\nYou can change it anytime in Settings.';
+  @override String get onboardingNameHint => 'Your first name';
 
   @override String get notifTitle => 'Time for your DayDump';
   @override String get notifBody => 'How did today go?';
@@ -438,6 +445,10 @@ class _Fr extends AppStrings {
   @override String get onboarding5Title => 'Ne rate aucun jour';
   @override String get onboarding5Subtitle =>
       'Reçois un rappel chaque soir pour compléter ton journal.\nTu peux modifier l\'heure à tout moment dans les réglages.';
+  @override String get onboardingNameTitle => 'Comment tu t\'appelles ?';
+  @override String get onboardingNameSubtitle =>
+      'On l\'utilisera pour te dire bonjour.\nTu peux le modifier à tout moment dans les réglages.';
+  @override String get onboardingNameHint => 'Ton prénom';
 
   @override String get notifTitle => 'C\'est l\'heure de ton DayDump';
   @override String get notifBody => 'Comment s\'est passée ta journée ?';

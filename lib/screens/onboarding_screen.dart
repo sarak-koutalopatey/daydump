@@ -21,21 +21,31 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageController = PageController();
+  final _nameController = TextEditingController();
   int _currentPage = 0;
   int _notifHour = 20;
   int _notifMinute = 0;
 
-  int get _pageCount => widget.isReview ? 4 : 5;
+  int get _pageCount => widget.isReview ? 4 : 6;
   bool get _isLast => _currentPage == _pageCount - 1;
   bool get _isNotifPage => !widget.isReview && _isLast;
+  bool get _isNamePage => !widget.isReview && _currentPage == 1;
 
   @override
   void dispose() {
     _pageController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
   void _goNext() {
+    FocusScope.of(context).unfocus();
+    if (_isNamePage) {
+      final name = _nameController.text.trim();
+      if (name.isNotEmpty) {
+        context.read<AppState>().setUserName(name);
+      }
+    }
     if (_currentPage < _pageCount - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 350),
@@ -98,13 +108,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } catch (_) {}
 
     if (granted && mounted) {
-      final appState = context.read<AppState>();
-      final lang = Localizations.localeOf(context).languageCode;
-      await appState.setReminder(
-          enabled: true, hour: _notifHour, minute: _notifMinute);
-      await NotificationService.scheduleDailyReminder(
-          _notifHour, _notifMinute,
-          lang: lang);
+      try {
+        final appState = context.read<AppState>();
+        final lang = Localizations.localeOf(context).languageCode;
+        await appState.setReminder(
+            enabled: true, hour: _notifHour, minute: _notifMinute);
+        await NotificationService.scheduleDailyReminder(
+            _notifHour, _notifMinute,
+            lang: lang);
+      } catch (_) {}
     }
 
     if (mounted) _complete();
@@ -171,8 +183,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: _pageCount,
-                onPageChanged: (i) => setState(() => _currentPage = i),
-                itemBuilder: (_, i) => _OnboardingPage(data: pages[i]),
+                onPageChanged: (i) {
+                  FocusScope.of(context).unfocus();
+                  setState(() => _currentPage = i);
+                },
+                itemBuilder: (_, i) {
+                  if (!widget.isReview && i == 1) {
+                    return _OnboardingNamePage(
+                      controller: _nameController,
+                      title: s.onboardingNameTitle,
+                      subtitle: s.onboardingNameSubtitle,
+                      hint: s.onboardingNameHint,
+                      onSubmit: _goNext,
+                    );
+                  }
+                  final idx = (!widget.isReview && i > 1) ? i - 1 : i;
+                  return _OnboardingPage(data: pages[idx]);
+                },
               ),
             ),
 
@@ -343,6 +370,107 @@ class _PageData {
     required this.title,
     required this.subtitle,
   });
+}
+
+// ─── Name input page ──────────────────────────────────────────────────────────
+
+class _OnboardingNamePage extends StatelessWidget {
+  final TextEditingController controller;
+  final String title;
+  final String subtitle;
+  final String hint;
+  final VoidCallback onSubmit;
+
+  const _OnboardingNamePage({
+    required this.controller,
+    required this.title,
+    required this.subtitle,
+    required this.hint,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(32, 0, 32, bottomInset + 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: context.cSurface2,
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: Icon(Icons.person_rounded, size: 80, color: context.cText2),
+                  ),
+                  const SizedBox(height: 40),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.figtree(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w600,
+                      color: context.cText,
+                      letterSpacing: -0.3,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    subtitle,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.figtree(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: context.cText2,
+                      height: 1.55,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  TextField(
+                    controller: controller,
+                    textCapitalization: TextCapitalization.words,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => onSubmit(),
+                    style: GoogleFonts.figtree(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      color: context.cText,
+                    ),
+                    cursorColor: context.cAccent,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      hintText: hint,
+                      hintStyle: GoogleFonts.figtree(
+                        fontSize: 20,
+                        color: context.cText3,
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: context.cBorder),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: context.cAccent, width: 2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 // ─── Single page ──────────────────────────────────────────────────────────────
