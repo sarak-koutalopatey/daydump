@@ -9,6 +9,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
 import '../l10n/app_strings.dart';
 import '../models/entry.dart';
 import 'onboarding_screen.dart';
@@ -1285,11 +1287,18 @@ class _AboutRow extends StatelessWidget {
 class _AboutSheet extends StatelessWidget {
   const _AboutSheet();
 
+  static const _roles = [
+    'Design',
+    'Développement',
+    'Produit',
+    'Copywriting',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final s = context.s;
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1350,7 +1359,84 @@ class _AboutSheet extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: context.cSurface2,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: context.cBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    s.credits,
+                    style: GoogleFonts.figtree(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: context.cText2,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ..._roles.map((role) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                role,
+                                style: GoogleFonts.figtree(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: context.cText2,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'Sarah KOUTA-LOPATEY',
+                              style: GoogleFonts.figtree(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: context.cText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                ],
+              ),
+            ),
             const SizedBox(height: 16),
+            Pressable(
+              onTap: () => launchUrl(
+                Uri.parse('https://www.sarah-koutalopatey.fr/'),
+                mode: LaunchMode.externalApplication,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'sarah-koutalopatey.fr',
+                      style: GoogleFonts.figtree(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: context.cAccent,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.open_in_new_rounded,
+                        size: 13, color: context.cAccent),
+                  ],
+                ),
+              ),
+            ),
+            /*const SizedBox(height: 4),
             Text(
               s.madeWith,
               style: GoogleFonts.figtree(
@@ -1358,7 +1444,7 @@ class _AboutSheet extends StatelessWidget {
                 fontWeight: FontWeight.w400,
                 color: context.cText3,
               ),
-            ),
+            ),*/
           ],
         ),
       ),

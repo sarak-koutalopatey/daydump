@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _GreetingHeader(
-                    dateLine: dateLine,
+                    //dateLine: dateLine,
                     userName: state.userName,
                     completedToday: state.completedToday,
                     s: s,
@@ -75,13 +75,13 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _GreetingHeader extends StatelessWidget {
-  final String dateLine;
+  //final String dateLine;
   final String userName;
   final bool completedToday;
   final AppStrings s;
 
   const _GreetingHeader({
-    required this.dateLine,
+    //required this.dateLine,
     required this.userName,
     required this.completedToday,
     required this.s,
@@ -92,7 +92,7 @@ class _GreetingHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        /*Text(
           dateLine,
           style: GoogleFonts.figtree(
             fontSize: 13,
@@ -100,10 +100,10 @@ class _GreetingHeader extends StatelessWidget {
             color: context.cText3,
             letterSpacing: 0.4,
           ),
-        ),
+        ),*/
         const SizedBox(height: 6),
         Text(
-          s.hiName(userName),
+          s.hiName(userName, DateTime.now().hour),
           style: GoogleFonts.figtree(
             fontSize: 32,
             fontWeight: FontWeight.w600,

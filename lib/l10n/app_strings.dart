@@ -16,7 +16,7 @@ abstract class AppStrings {
   String get editMyDayDump;
   String get todayLogged;
   String get howDidTodayGo;
-  String hiName(String name);
+  String hiName(String name, int hour);
   String get daysInARow;
   String get bestStreak;
   String get recent;
@@ -96,6 +96,7 @@ abstract class AppStrings {
   String get version;
   String get aboutDescription;
   String get madeWith;
+  String get credits;
   String get notificationsBlocked;
   String get notificationsBlockedMessage;
   String get openSettings;
@@ -156,7 +157,10 @@ class _En extends AppStrings {
   @override String get editMyDayDump => 'Edit my DayDump';
   @override String get todayLogged => 'Today is logged! Nice work!';
   @override String get howDidTodayGo => 'How did today go?';
-  @override String hiName(String name) => 'Hi, $name!';
+  @override String hiName(String name, int hour) {
+    final greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    return '$greeting, $name!';
+  }
   @override String get daysInARow => 'days in a row';
   @override String get bestStreak => 'Best streak yet. Keep it going!';
   @override String get recent => 'RECENTS';
@@ -242,6 +246,7 @@ class _En extends AppStrings {
   @override String get aboutDescription =>
       'Frictionless end-of-day journaling.\n3 questions. 5 minutes. All data stays on your device.';
   @override String get madeWith => 'Made with Flutter · No cloud, no account';
+  @override String get credits => 'CREDITS';
   @override String get notificationsBlocked => 'Notifications blocked';
   @override String get notificationsBlockedMessage =>
       'Allow notifications for DayDump in your device settings to receive daily reminders.';
@@ -312,7 +317,10 @@ class _Fr extends AppStrings {
   @override String get editMyDayDump => 'Modifier mon DayDump';
   @override String get todayLogged => 'Journée enregistrée ! Bravo !';
   @override String get howDidTodayGo => 'Comment s\'est passée ta journée ?';
-  @override String hiName(String name) => 'Bonjour, $name !';
+  @override String hiName(String name, int hour) {
+    final greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+    return '$greeting, $name !';
+  }
   @override String get daysInARow => 'jours d\'affilée';
   @override String get bestStreak => 'Ton record. Continue comme ça !';
   @override String get recent => 'RÉCENTS';
@@ -399,6 +407,7 @@ class _Fr extends AppStrings {
   @override String get aboutDescription =>
       'Journal de fin de journée sans friction.\n3 questions. 5 minutes. Tout reste sur ton appareil.';
   @override String get madeWith => 'Fait avec Flutter · Pas de nuage, pas de compte';
+  @override String get credits => 'CRÉDITS';
   @override String get notificationsBlocked => 'Notifications bloquées';
   @override String get notificationsBlockedMessage =>
       'Autorise les notifications pour DayDump dans les réglages de ton appareil afin de recevoir des rappels quotidiens.';
