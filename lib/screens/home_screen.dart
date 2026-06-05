@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+//import 'package:intl/intl.dart';
 import '../l10n/app_strings.dart';
 import '../models/entry.dart';
 import '../state/app_state.dart';
@@ -21,9 +21,9 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final s = context.s;
-    final locale = Localizations.localeOf(context).toString();
-    final now = DateTime.now();
-    final dateLine = DateFormat('EEEE, MMMM d', locale).format(now).toUpperCase();
+    //final locale = Localizations.localeOf(context).toString();
+    //final now = DateTime.now();
+    //final dateLine = DateFormat('EEEE, MMMM d', locale).format(now).toUpperCase();
 
     return Scaffold(
       backgroundColor: context.cBg,
