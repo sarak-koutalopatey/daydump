@@ -154,12 +154,12 @@ class _En extends AppStrings {
 
   @override String get doMyDayDump => 'Do my DayDump';
   @override String get editMyDayDump => 'Edit my DayDump';
-  @override String get todayLogged => 'Today is logged. Nice work.';
+  @override String get todayLogged => 'Today is logged! Nice work!';
   @override String get howDidTodayGo => 'How did today go?';
-  @override String hiName(String name) => 'Hi, $name.';
+  @override String hiName(String name) => 'Hi, $name!';
   @override String get daysInARow => 'days in a row';
-  @override String get bestStreak => 'Best streak yet. Keep it going.';
-  @override String get recent => 'RECENT';
+  @override String get bestStreak => 'Best streak yet. Keep it going!';
+  @override String get recent => 'RECENTS';
   @override String get viewAll => 'View all';
 
   @override String get next => 'Next';
@@ -195,7 +195,7 @@ class _En extends AppStrings {
 
   @override String get historyTitle => 'History';
   @override String entriesCount(int n) =>
-      '$n ${n == 1 ? 'entry' : 'entries'} · all local';
+      '$n ${n == 1 ? 'entry' : 'entries'}';
   @override String get thisWeek => 'This week';
   @override String get lastWeek => 'Last week';
   @override String get threeQuestions => '3 questions';
@@ -310,12 +310,12 @@ class _Fr extends AppStrings {
 
   @override String get doMyDayDump => 'Faire mon DayDump';
   @override String get editMyDayDump => 'Modifier mon DayDump';
-  @override String get todayLogged => 'Journée enregistrée. Bravo.';
+  @override String get todayLogged => 'Journée enregistrée ! Bravo !';
   @override String get howDidTodayGo => 'Comment s\'est passée ta journée ?';
-  @override String hiName(String name) => 'Bonjour, $name.';
+  @override String hiName(String name) => 'Bonjour, $name !';
   @override String get daysInARow => 'jours d\'affilée';
-  @override String get bestStreak => 'Ton record. Continue comme ça.';
-  @override String get recent => 'RÉCENT';
+  @override String get bestStreak => 'Ton record. Continue comme ça !';
+  @override String get recent => 'RÉCENTS';
   @override String get viewAll => 'Voir tout';
 
   @override String get next => 'Suivant';
@@ -351,7 +351,7 @@ class _Fr extends AppStrings {
 
   @override String get historyTitle => 'Historique';
   @override String entriesCount(int n) =>
-      '$n ${n == 1 ? 'entrée' : 'entrées'} · tout en local';
+      '$n ${n == 1 ? 'entrée' : 'entrées'}';
   @override String get thisWeek => 'Cette semaine';
   @override String get lastWeek => 'La semaine dernière';
   @override String get threeQuestions => '3 questions';

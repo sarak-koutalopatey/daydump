@@ -116,7 +116,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  Center(
+                  /*Center(
                     child: Text(
                       s.footer,
                       style: GoogleFonts.figtree(
@@ -126,7 +126,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 24),*/
                 ]),
               ),
             ),
