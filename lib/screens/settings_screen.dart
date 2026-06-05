@@ -1341,7 +1341,7 @@ class _AboutSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            Container(
+            /*Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -1358,7 +1358,7 @@ class _AboutSheet extends StatelessWidget {
                   height: 1.5,
                 ),
               ),
-            ),
+            ),*/
             const SizedBox(height: 20),
             Container(
               width: double.infinity,
@@ -1422,9 +1422,9 @@ class _AboutSheet extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'sarah-koutalopatey.fr',
+                      'www.sarah-koutalopatey.fr',
                       style: GoogleFonts.figtree(
-                        fontSize: 13,
+                        fontSize: 17,
                         fontWeight: FontWeight.w500,
                         color: context.cAccent,
                       ),
