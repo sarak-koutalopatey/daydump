@@ -19,7 +19,7 @@ extension AppColorsX on BuildContext {
   Color get cAccentTint =>
       isDark ? kAccent.withValues(alpha: 0.14) : kAccent.withValues(alpha: 0.10);
   Color get cPress =>
-      isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04);
+      isDark ? const Color(0xFFFBF1).withValues(alpha: 0.06) : const Color(0xFF000000).withValues(alpha: 0.04);
   Color get cTabBg =>
       isDark ? const Color(0xFF111111).withValues(alpha: 0.92) : const Color(0xFFFFFFFF).withValues(alpha: 0.92);
   Color get cDanger =>

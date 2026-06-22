@@ -18,6 +18,13 @@ class UpdateInfo {
 
 class RemoteConfigService {
   static final _rc = FirebaseRemoteConfig.instance;
+  static bool _updateScreenShown = false;
+
+  static bool claimUpdateScreen() {
+    if (_updateScreenShown) return false;
+    _updateScreenShown = true;
+    return true;
+  }
 
   static Future<void> init() async {
     await _rc.setConfigSettings(RemoteConfigSettings(

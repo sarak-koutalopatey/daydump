@@ -137,10 +137,11 @@ abstract class AppStrings {
   String get onboardingNameSubtitle;
   String get onboardingNameHint;
 
-  // Update banner
+  // Update screen
   String get updateAvailableTitle;
   String updateAvailableBody(String version);
   String get updateNow;
+  String get remindMeLater;
 
   // Notification
   String get notifTitle;
@@ -307,6 +308,7 @@ class _En extends AppStrings {
   @override String updateAvailableBody(String version) =>
       'Version $version is now available. Update to get the latest improvements.';
   @override String get updateNow => 'Update now';
+  @override String get remindMeLater => 'Remind me later';
 
   @override String get notifTitle => 'Time for your DayDump';
   @override String get notifBody => 'How did today go?';
@@ -473,6 +475,7 @@ class _Fr extends AppStrings {
   @override String updateAvailableBody(String version) =>
       'La version $version est maintenant disponible. Mets à jour pour profiter des dernières améliorations.';
   @override String get updateNow => 'Mettre à jour';
+  @override String get remindMeLater => 'Me rappeler plus tard';
 
   @override String get notifTitle => 'C\'est l\'heure de ton DayDump';
   @override String get notifBody => 'Comment s\'est passée ta journée ?';
