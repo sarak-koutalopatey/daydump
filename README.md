@@ -202,3 +202,8 @@ Pour regénérer les icônes après modification de la source :
 dart run flutter_launcher_icons
 ```
 
+## Setup Firebase
+
+1. Créer un projet Firebase
+2. Installer FlutterFire CLI : `dart pub global activate flutterfire_cli`
+3. `flutterfire configure`
