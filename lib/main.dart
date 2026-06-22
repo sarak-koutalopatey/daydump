@@ -6,9 +6,14 @@ import 'services/notification_service.dart';
 import 'state/app_state.dart';
 import 'screens/main_scaffold.dart';
 import 'screens/onboarding_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await NotificationService.init();
   runApp(
     ChangeNotifierProvider(
