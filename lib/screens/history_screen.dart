@@ -22,7 +22,7 @@ class HistoryScreen extends StatelessWidget {
     final lastWeek = state.lastWeekEntries;
 
     return Scaffold(
-      backgroundColor: context.cBg,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         bottom: false,
         child: CustomScrollView(

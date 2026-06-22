@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     //final dateLine = DateFormat('EEEE, MMMM d', locale).format(now).toUpperCase();
 
     return Scaffold(
-      backgroundColor: context.cBg,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         bottom: false,
         child: CustomScrollView(

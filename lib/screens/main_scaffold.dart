@@ -4,6 +4,9 @@ import 'home_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 
+const _bgLight = 'assets/background/bg_light.png';
+const _bgDark  = 'assets/background/bg_dark.png';
+
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
 
@@ -18,13 +21,24 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      body: IndexedStack(
-        index: _tab.index,
+      body: Stack(
         children: [
-          HomeScreen(onTabChange: _switchTab),
-          HistoryScreen(onTabChange: _switchTab),
-          SettingsScreen(onTabChange: _switchTab),
+          Positioned.fill(
+            child: Image.asset(
+              isDark ? _bgDark : _bgLight,
+              fit: BoxFit.cover,
+            ),
+          ),
+          IndexedStack(
+            index: _tab.index,
+            children: [
+              HomeScreen(onTabChange: _switchTab),
+              HistoryScreen(onTabChange: _switchTab),
+              SettingsScreen(onTabChange: _switchTab),
+            ],
+          ),
         ],
       ),
       bottomNavigationBar: AppBottomNavBar(

@@ -31,7 +31,7 @@ class SettingsScreen extends StatelessWidget {
     final state = context.watch<AppState>();
     final s = context.s;
     return Scaffold(
-      backgroundColor: context.cBg,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         bottom: false,
         child: CustomScrollView(
