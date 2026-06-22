@@ -137,6 +137,11 @@ abstract class AppStrings {
   String get onboardingNameSubtitle;
   String get onboardingNameHint;
 
+  // Update banner
+  String get updateAvailableTitle;
+  String updateAvailableBody(String version);
+  String get updateNow;
+
   // Notification
   String get notifTitle;
   String get notifBody;
@@ -298,6 +303,11 @@ class _En extends AppStrings {
       'We\'ll use it to say hi.\nYou can change it anytime in Settings.';
   @override String get onboardingNameHint => 'Your first name';
 
+  @override String get updateAvailableTitle => 'Update available';
+  @override String updateAvailableBody(String version) =>
+      'Version $version is now available. Update to get the latest improvements.';
+  @override String get updateNow => 'Update now';
+
   @override String get notifTitle => 'Time for your DayDump';
   @override String get notifBody => 'How did today go?';
   @override String get notifChannelName => 'Daily reminder';
@@ -458,6 +468,11 @@ class _Fr extends AppStrings {
   @override String get onboardingNameSubtitle =>
       'On l\'utilisera pour te dire bonjour.\nTu peux le modifier à tout moment dans les réglages.';
   @override String get onboardingNameHint => 'Ton prénom';
+
+  @override String get updateAvailableTitle => 'Mise à jour disponible';
+  @override String updateAvailableBody(String version) =>
+      'La version $version est maintenant disponible. Mets à jour pour profiter des dernières améliorations.';
+  @override String get updateNow => 'Mettre à jour';
 
   @override String get notifTitle => 'C\'est l\'heure de ton DayDump';
   @override String get notifBody => 'Comment s\'est passée ta journée ?';

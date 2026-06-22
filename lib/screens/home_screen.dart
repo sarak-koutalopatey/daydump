@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 //import 'package:intl/intl.dart';
 import '../l10n/app_strings.dart';
 import '../models/entry.dart';
+import '../services/remote_config_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -12,15 +14,25 @@ import '../widgets/primary_button.dart';
 import 'checkin_screen.dart';
 import 'detail_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final ValueChanged<NavTab> onTabChange;
 
   const HomeScreen({super.key, required this.onTabChange});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _updateBannerDismissed = false;
+
+  @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final s = context.s;
+    final updateInfo = RemoteConfigService.updateInfo;
+    final showUpdateBanner =
+        updateInfo.available && !_updateBannerDismissed;
     //final locale = Localizations.localeOf(context).toString();
     //final now = DateTime.now();
     //final dateLine = DateFormat('EEEE, MMMM d', locale).format(now).toUpperCase();
@@ -41,6 +53,15 @@ class HomeScreen extends StatelessWidget {
                     completedToday: state.completedToday,
                     s: s,
                   ),
+                  if (showUpdateBanner) ...[
+                    const SizedBox(height: 16),
+                    _UpdateBanner(
+                      info: updateInfo,
+                      s: s,
+                      onDismiss: () =>
+                          setState(() => _updateBannerDismissed = true),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   _StreakCard(streak: state.streak, s: s),
                   const SizedBox(height: 24),
@@ -58,7 +79,7 @@ class HomeScreen extends StatelessWidget {
                   _RecentSection(
                     entries: state.entries,
                     s: s,
-                    onViewAll: () => onTabChange(NavTab.history),
+                    onViewAll: () => widget.onTabChange(NavTab.history),
                     onOpenEntry: (e) => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => DetailScreen(entry: e)),
                     ),
@@ -69,6 +90,103 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── Update banner ───────────────────────────────────────────────────────────
+
+class _UpdateBanner extends StatelessWidget {
+  final UpdateInfo info;
+  final AppStrings s;
+  final VoidCallback onDismiss;
+
+  const _UpdateBanner({
+    required this.info,
+    required this.s,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.cAccentTint,
+        border: Border.all(color: context.cAccent.withValues(alpha: 0.35)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: context.cAccent.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.system_update_rounded,
+                color: context.cAccent, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  s.updateAvailableTitle,
+                  style: GoogleFonts.figtree(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: context.cText,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  s.updateAvailableBody(info.latestVersion),
+                  style: GoogleFonts.figtree(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: context.cText2,
+                    height: 1.4,
+                  ),
+                ),
+                if (info.hasUrl) ...[
+                  const SizedBox(height: 8),
+                  Pressable(
+                    onTap: () => launchUrl(
+                      Uri.parse(info.updateUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text(
+                        s.updateNow,
+                        style: GoogleFonts.figtree(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: context.cAccent,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          Pressable(
+            onTap: onDismiss,
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(Icons.close_rounded,
+                  size: 16, color: context.cText3),
+            ),
+          ),
+        ],
       ),
     );
   }
