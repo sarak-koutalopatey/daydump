@@ -244,13 +244,32 @@ class _AnswerInput extends StatefulWidget {
 class _AnswerInputState extends State<_AnswerInput> {
   int _charCount = 0;
 
+  void _onTextChanged() {
+    setState(() => _charCount = widget.controller.text.length);
+    widget.onChanged(widget.controller.text);
+  }
+
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(() {
+    widget.controller.addListener(_onTextChanged);
+    _charCount = widget.controller.text.length;
+  }
+
+  @override
+  void didUpdateWidget(_AnswerInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onTextChanged);
+      widget.controller.addListener(_onTextChanged);
       setState(() => _charCount = widget.controller.text.length);
-      widget.onChanged(widget.controller.text);
-    });
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onTextChanged);
+    super.dispose();
   }
 
   @override
